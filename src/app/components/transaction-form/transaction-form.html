@@ -1,0 +1,92 @@
+<div class="p-6 max-w-2xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">Add Transaction</h1>
+
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <form (ngSubmit)="onSubmit()" #form="ngForm">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="type">
+                    Type
+                </label>
+                <div class="flex space-x-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" class="form-radio text-green-600" name="type" [(ngModel)]="transaction.type"
+                            value="INCOME">
+                        <span class="ml-2">Income</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" class="form-radio text-red-600" name="type" [(ngModel)]="transaction.type"
+                            value="EXPENSE">
+                        <span class="ml-2">Expense</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
+                    Amount (INR)
+                </label>
+                <input
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="amount" type="number" placeholder="0.00" name="amount" [(ngModel)]="transaction.amount"
+                    required>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="date">
+                    Date
+                </label>
+                <input
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="date" type="date" name="date" [(ngModel)]="transaction.date" [max]="maxDate" [min]="minDate"
+                    required>
+                <p class="text-xs text-gray-500 mt-1">Transactions can only be added for the last 15 days</p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="category">
+                    Category
+                </label>
+                <div class="flex items-center space-x-2 mb-2">
+                    <input type="checkbox" id="newCategory" name="isNewCategory" [(ngModel)]="isNewCategory"
+                        class="form-checkbox h-4 w-4 text-blue-600">
+                    <label for="newCategory" class="text-sm text-gray-600">Create new category</label>
+                </div>
+
+                <div *ngIf="!isNewCategory">
+                    <select
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="category" name="category" [(ngModel)]="transaction.category"
+                        [compareWith]="compareCategories">
+                        <option [ngValue]="{name: ''}" disabled>Select a category</option>
+                        <option *ngFor="let c of categories" [ngValue]="c">{{ c.name }}</option>
+                    </select>
+                </div>
+
+                <div *ngIf="isNewCategory">
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="newCategoryName" type="text" placeholder="Category Name" name="newCategoryName"
+                        [(ngModel)]="newCategoryName">
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
+                    Description
+                </label>
+                <textarea
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="description" placeholder="Description" name="description"
+                    [(ngModel)]="transaction.description"></textarea>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <button
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                    type="submit">
+                    Save Transaction
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,166 @@
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-8 text-gray-800">🎯 Smart Financial Goals</h1>
+
+    <!-- Action Bar -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <p class="text-gray-600">Track your dreams and achieve them faster.</p>
+        </div>
+        <div class="flex justify-end gap-4 mb-8">
+            <button (click)="openCreateGoal()"
+                class="bg-white text-purple-600 border border-purple-600 hover:bg-purple-50 font-bold py-2 px-6 rounded-full shadow-sm flex items-center transition transform hover:scale-105">
+                + Create Custom Goal
+            </button>
+            <button (click)="showSmartPlan = true"
+                class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-full shadow-lg flex items-center transition transform hover:scale-105">
+                ✨ Smart Plan (Auto-Allocate)
+            </button>
+        </div>
+    </div>
+
+    <div class="mb-10">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">Quick Start Templates</h2>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div *ngFor="let t of templates" (click)="openTemplate(t)"
+                class="bg-white p-4 rounded-xl shadow hover:shadow-md cursor-pointer border border-gray-100 transition hover:-translate-y-1 text-center">
+                <div class="text-4xl mb-2">{{t.icon}}</div>
+                <div class="font-bold text-gray-800">{{t.name}}</div>
+                <div class="text-xs text-gray-500">Target: ₹{{t.target | number}}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Goals List -->
+    <h2 class="text-xl font-semibold mb-4 text-gray-700">Your Goals</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngFor="let goal of goals" class="bg-white rounded-xl shadow-md overflow-hidden border-l-4"
+            [ngClass]="{'border-red-500': goal.priority === 1, 'border-yellow-500': goal.priority === 2, 'border-green-500': goal.priority > 2}">
+
+            <div class="p-5">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <h3 class="font-bold text-lg text-gray-800">{{goal.name}}</h3>
+                        <span class="text-xs font-semibold px-2 py-1 rounded bg-gray-100 text-gray-600">
+                            Priority {{goal.priority}}
+                        </span>
+                    </div>
+                    <div class="text-2xl">{{goal.templateId || '🎯'}}</div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="mb-2">
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="font-semibold text-gray-700">₹{{goal.currentAmount | number}}</span>
+                        <span class="text-gray-500">of ₹{{goal.targetAmount | number}}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-blue-600 h-3 rounded-full transition-all duration-1000 ease-out"
+                            [style.width.%]="getProgress(goal)"></div>
+                    </div>
+                    <div class="text-right text-xs text-blue-600 font-bold mt-1">{{getProgress(goal) |
+                        number:'1.0-0'}}%
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mt-4">
+                    <div class="text-xs text-gray-500">
+                        <span *ngIf="goal.deadline">📅 Due: {{goal.deadline}}</span>
+                    </div>
+                    <button (click)="openAddFunds(goal)"
+                        class="text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1 rounded font-semibold">
+                        + Add Funds
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Goal Modal -->
+    <div *ngIf="showAddGoal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 class="text-xl font-bold mb-4">Create New Goal</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Goal Name</label>
+                    <input [(ngModel)]="newGoal.name"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Target Amount (₹)</label>
+                    <input type="number" [(ngModel)]="newGoal.targetAmount"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Priority (1 = Highest)</label>
+                    <input type="number" [(ngModel)]="newGoal.priority"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button (click)="showAddGoal = false"
+                    class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
+                <button (click)="createGoal()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Create
+                    Goal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Funds Modal -->
+    <div *ngIf="showAddFunds" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 class="text-xl font-bold mb-2">Add Funds</h2>
+            <p class="text-gray-600 mb-4">To: {{selectedGoal?.name}}</p>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Amount (₹)</label>
+                <input type="number" [(ngModel)]="fundsToAdd"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border text-lg font-bold text-green-600">
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-3">
+                <button (click)="showAddFunds = false"
+                    class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
+                <button (click)="submitFunds()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Add
+                    Funds</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Smart Plan Modal -->
+    <div *ngIf="showSmartPlan" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-lg">
+            <h2 class="text-xl font-bold mb-2">✨ Smart Allocation Plan</h2>
+            <p class="text-gray-600 mb-4">Enter your total savings, and we'll distribute it based on priority.</p>
+
+            <div class="flex space-x-2 mb-6">
+                <input type="number" [(ngModel)]="totalSavings" placeholder="Total Savings (e.g. 20000)"
+                    class="flex-1 rounded-md border-gray-300 shadow-sm p-2 border">
+                <button (click)="calculateSmartPlan()"
+                    class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Calculate</button>
+            </div>
+
+            <div *ngIf="smartAllocation && Object.keys(smartAllocation).length > 0"
+                class="bg-gray-50 p-4 rounded-lg mb-4 max-h-60 overflow-y-auto">
+                <h3 class="font-semibold mb-2 text-sm text-gray-500 uppercase tracking-wide">Suggested Split</h3>
+                <div *ngFor="let goalId of Object.keys(smartAllocation)"
+                    class="flex justify-between items-center py-2 border-b last:border-0">
+                    <div>
+                        <div class="font-medium">Goal {{goalId}}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-green-600">+₹{{smartAllocation[goalId] | number}}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-3">
+                <button (click)="showSmartPlan = false"
+                    class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Close</button>
+                <button *ngIf="smartAllocation && Object.keys(smartAllocation).length > 0" (click)="applySmartPlan()"
+                    class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 shadow-lg animate-pulse">
+                    Apply Allocation
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

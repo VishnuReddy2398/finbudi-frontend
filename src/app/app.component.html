@@ -1,0 +1,99 @@
+<!-- Sidebar (Slide-out) -->
+<div *ngIf="isLoggedIn"
+    class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out"
+    [class.-translate-x-full]="!isSidebarOpen">
+    <div class="p-6 border-b flex justify-between items-center bg-purple-600 text-white">
+        <h2 class="text-xl font-bold">Menu</h2>
+        <button (click)="toggleSidebar()" class="hover:text-gray-200">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+    <nav class="p-4 space-y-2">
+        <a routerLink="/goals" (click)="toggleSidebar()"
+            class="block px-4 py-3 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-700 font-medium transition flex items-center gap-3">
+            <span>🎯</span> Smart Goals
+        </a>
+        <a routerLink="/planning" (click)="toggleSidebar()"
+            class="block px-4 py-3 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-700 font-medium transition flex items-center gap-3">
+            <span>📅</span> Monthly Planning
+        </a>
+        <a routerLink="/reports" (click)="toggleSidebar()"
+            class="block px-4 py-3 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-700 font-medium transition flex items-center gap-3">
+            <span>📈</span> Reports
+        </a>
+        <a routerLink="/transactions" (click)="toggleSidebar()"
+            class="block px-4 py-3 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-700 font-medium transition flex items-center gap-3">
+            <span>💳</span> Transactions
+        </a>
+        <a routerLink="/sessions" (click)="toggleSidebar()"
+            class="block px-4 py-3 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-700 font-medium transition flex items-center gap-3">
+            <span>📱</span> Active Sessions
+        </a>
+        <a routerLink="/mfa-setup" (click)="toggleSidebar()"
+            class="block px-4 py-3 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-700 font-medium transition flex items-center gap-3">
+            <span>🔐</span> MFA Setup
+        </a>
+    </nav>
+</div>
+
+<!-- Overlay -->
+<div *ngIf="isSidebarOpen && isLoggedIn" (click)="toggleSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-40">
+</div>
+
+<nav class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white p-4 shadow-2xl relative z-30">
+    <div class="container mx-auto flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <!-- Hamburger Button -->
+            <button *ngIf="isLoggedIn" (click)="toggleSidebar()"
+                class="p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+            <a routerLink="/home" class="text-2xl font-bold drop-shadow-lg hover:underline">💰 FinBudi</a>
+        </div>
+
+        <div class="space-x-2 flex items-center">
+            <!-- Public Links -->
+            <ng-container *ngIf="!isLoggedIn">
+                <a routerLink="/home"
+                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 font-semibold">Home</a>
+                <a routerLink="/login"
+                    class="px-4 py-2 rounded-lg border border-white border-opacity-30 hover:bg-white hover:bg-opacity-10 font-semibold">Login</a>
+                <a routerLink="/signup"
+                    class="px-4 py-2 rounded-lg bg-yellow-400 text-purple-900 font-bold hover:bg-yellow-300 shadow-lg">Sign
+                    Up</a>
+            </ng-container>
+
+            <!-- Logged In Links -->
+            <ng-container *ngIf="isLoggedIn">
+                <a routerLink="/dashboard" routerLinkActive="bg-white bg-opacity-30"
+                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 font-semibold flex items-center gap-2">
+                    <span>📊</span> Dashboard
+                </a>
+                <a routerLink="/planning" routerLinkActive="bg-white bg-opacity-30"
+                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 font-semibold flex items-center gap-2">
+                    <span>📅</span> Monthly Planning
+                </a>
+                <a routerLink="/add-transaction" routerLinkActive="bg-white bg-opacity-30"
+                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 font-semibold flex items-center gap-2">
+                    <span>➕</span> Add Transaction
+                </a>
+                <a routerLink="/transactions" routerLinkActive="bg-white bg-opacity-30"
+                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 font-semibold flex items-center gap-2">
+                    <span>💳</span> Transactions
+                </a>
+                <button (click)="logout()"
+                    class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 font-bold shadow-lg flex items-center gap-2">
+                    <span>🚪</span> Logout
+                </button>
+            </ng-container>
+        </div>
+    </div>
+</nav>
+
+<div class="min-h-screen bg-gray-50">
+    <router-outlet></router-outlet>
+</div>

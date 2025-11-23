@@ -1,0 +1,65 @@
+<div class="p-6">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">Financial Reports</h1>
+
+    <div class="flex space-x-4 mb-8">
+        <button (click)="generateWeeklyReport()"
+            class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
+            Generate Weekly Report
+        </button>
+        <button (click)="generateMonthlyReport()"
+            class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+            Generate Monthly Report
+        </button>
+    </div>
+
+    <div *ngIf="reportType" class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-800">{{ reportType === 'WEEKLY' ? 'Weekly' : 'Monthly' }} Report
+            </h2>
+            <div class="text-sm">
+                <span class="text-green-600 font-bold mr-4">Income: ₹{{ totalIncome }}</span>
+                <span class="text-red-600 font-bold">Expenses: ₹{{ totalExpense }}</span>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Description</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Category</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Amount</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr *ngFor="let t of transactions">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ t.date }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ t.description }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ t.category?.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <span
+                                [class]="t.type === 'INCOME' ? 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800' : 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800'">
+                                {{ t.type }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"
+                            [class.text-green-600]="t.type === 'INCOME'" [class.text-red-600]="t.type === 'EXPENSE'">
+                            ₹{{ t.amount }}
+                        </td>
+                    </tr>
+                    <tr *ngIf="transactions.length === 0">
+                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">No transactions found for
+                            this period.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
