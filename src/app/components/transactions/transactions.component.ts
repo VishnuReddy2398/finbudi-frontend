@@ -62,7 +62,17 @@ export class TransactionsComponent implements OnInit {
         if (this.sortOrder) params.sortOrder = this.sortOrder;
 
         this.financeService.getTransactions(params).subscribe({
-            next: (data) => this.transactions = data,
+            next: (data) => {
+                // Filter by current month (client-side for now as requested)
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+
+                this.transactions = data.filter(t => {
+                    const tDate = new Date(t.date);
+                    return tDate.getMonth() === currentMonth && tDate.getFullYear() === currentYear;
+                });
+            },
             error: (err) => console.error('Error loading transactions:', err)
         });
     }

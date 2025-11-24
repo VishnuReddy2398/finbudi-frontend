@@ -69,7 +69,7 @@ export class PlanningComponent implements OnInit {
     if (this.newIncome.categoryName && this.newIncome.plannedAmount > 0) {
       this.incomeItems.push({
         categoryName: this.newIncome.categoryName,
-        plannedAmount: this.newIncome.plannedAmount,
+        plannedAmount: Number(this.newIncome.plannedAmount),
         type: 'INCOME',
         fixed: false
       });
@@ -84,7 +84,7 @@ export class PlanningComponent implements OnInit {
     if (category && this.newFixedExpense.plannedAmount > 0) {
       this.fixedExpenseItems.push({
         categoryName: category,
-        plannedAmount: this.newFixedExpense.plannedAmount,
+        plannedAmount: Number(this.newFixedExpense.plannedAmount),
         type: 'EXPENSE',
         fixed: true
       });
@@ -100,7 +100,7 @@ export class PlanningComponent implements OnInit {
     if (category && this.newVariableExpense.plannedAmount > 0) {
       this.variableExpenseItems.push({
         categoryName: category,
-        plannedAmount: this.newVariableExpense.plannedAmount,
+        plannedAmount: Number(this.newVariableExpense.plannedAmount),
         type: 'EXPENSE',
         fixed: false
       });
@@ -116,9 +116,9 @@ export class PlanningComponent implements OnInit {
   }
 
   calculateTotals() {
-    this.totalIncome = this.incomeItems.reduce((sum, item) => sum + item.plannedAmount, 0);
-    this.totalFixedExpense = this.fixedExpenseItems.reduce((sum, item) => sum + item.plannedAmount, 0);
-    this.totalVariableExpense = this.variableExpenseItems.reduce((sum, item) => sum + item.plannedAmount, 0);
+    this.totalIncome = this.incomeItems.reduce((sum, item) => sum + Number(item.plannedAmount), 0);
+    this.totalFixedExpense = this.fixedExpenseItems.reduce((sum, item) => sum + Number(item.plannedAmount), 0);
+    this.totalVariableExpense = this.variableExpenseItems.reduce((sum, item) => sum + Number(item.plannedAmount), 0);
     this.availableForGoals = this.totalIncome - this.totalFixedExpense - this.totalVariableExpense;
   }
 

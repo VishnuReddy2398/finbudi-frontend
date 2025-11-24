@@ -1,0 +1,31 @@
+<div class="achievements-container">
+    <div class="header">
+        <h1>Your Achievements</h1>
+        <p>Unlock badges by tracking your finances!</p>
+    </div>
+
+    <div class="achievements-grid" *ngIf="!loading">
+        <div class="achievement-card unlocked" *ngFor="let ua of userAchievements">
+            <div class="icon">{{ ua.achievement.icon }}</div>
+            <div class="content">
+                <h3>{{ ua.achievement.name }}</h3>
+                <p>{{ ua.achievement.description }}</p>
+                <div class="meta">
+                    <span class="points">+{{ ua.achievement.points }} pts</span>
+                    <span class="date">Unlocked: {{ ua.unlockedAt | date }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Placeholder for empty state -->
+        <div class="empty-state" *ngIf="userAchievements.length === 0">
+            <div class="empty-icon">🔒</div>
+            <h3>No achievements yet</h3>
+            <p>Start tracking your expenses to unlock badges!</p>
+        </div>
+    </div>
+
+    <div class="loading" *ngIf="loading">
+        Loading achievements...
+    </div>
+</div>

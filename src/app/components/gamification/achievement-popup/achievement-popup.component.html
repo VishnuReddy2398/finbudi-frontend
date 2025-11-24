@@ -1,0 +1,22 @@
+<div class="popup-overlay" *ngIf="achievement" (click)="onClose()">
+    <div class="popup-content" (click)="$event.stopPropagation()">
+        <div class="confetti-bg"></div>
+
+        <div class="popup-header">
+            <div class="trophy-icon">🏆</div>
+            <h2>Achievement Unlocked!</h2>
+        </div>
+
+        <div class="achievement-details">
+            <div class="achievement-icon">{{ achievement.icon }}</div>
+            <h3>{{ achievement.name }}</h3>
+            <p>{{ achievement.description }}</p>
+
+            <div class="points-badge">
+                +{{ achievement.points }} Points
+            </div>
+        </div>
+
+        <button class="close-btn" (click)="onClose()">Awesome!</button>
+    </div>
+</div>

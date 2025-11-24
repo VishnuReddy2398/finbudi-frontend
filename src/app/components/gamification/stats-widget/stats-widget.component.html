@@ -1,0 +1,33 @@
+<div class="stats-card" *ngIf="stats">
+    <div class="stat-item">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.totalPoints }}</div>
+            <div class="stat-label">Points</div>
+        </div>
+    </div>
+
+    <div class="stat-divider"></div>
+
+    <div class="stat-item">
+        <div class="stat-icon">{{ streakEmoji }}</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.currentStreak }} Days</div>
+            <div class="stat-label">Streak</div>
+        </div>
+    </div>
+
+    <div class="stat-divider"></div>
+
+    <div class="stat-item">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.goalsCompleted }}</div>
+            <div class="stat-label">Goals Done</div>
+        </div>
+    </div>
+</div>
+
+<div class="loading-stats" *ngIf="loading">
+    Loading stats...
+</div>

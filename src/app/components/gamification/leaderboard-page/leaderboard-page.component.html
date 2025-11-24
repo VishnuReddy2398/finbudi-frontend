@@ -1,0 +1,43 @@
+<div class="leaderboard-container">
+    <div class="header">
+        <h1>🏆 Leaderboard</h1>
+        <p>Top users this month</p>
+    </div>
+
+    <div class="leaderboard-card">
+        <div class="table-responsive">
+            <table class="leaderboard-table" *ngIf="!loading">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>User</th>
+                        <th>Points</th>
+                        <th>Streak</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let entry of leaderboard; let i = index" [class.top-3]="i < 3">
+                        <td class="rank">{{ getRankEmoji(i) }}</td>
+                        <td class="user">
+                            <div class="avatar">{{ entry.username.charAt(0) }}</div>
+                            {{ entry.username }}
+                        </td>
+                        <td class="points">{{ entry.points }} pts</td>
+                        <td class="streak">
+                            <span *ngIf="entry.streak > 0">🔥 {{ entry.streak }} days</span>
+                            <span *ngIf="entry.streak === 0">-</span>
+                        </td>
+                    </tr>
+
+                    <tr *ngIf="leaderboard.length === 0" class="empty-row">
+                        <td colspan="4">No data available yet</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="loading" *ngIf="loading">
+            Loading leaderboard...
+        </div>
+    </div>
+</div>

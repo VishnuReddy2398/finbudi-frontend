@@ -6,11 +6,12 @@ import { FinanceService, Transaction } from '../../services/finance';
 import { BudgetService } from '../../services/budget.service';
 import { AuthService } from '../../services/auth.service';
 import { PieChartComponent } from '../charts/pie-chart.component';
+import { StatsWidgetComponent } from '../gamification/stats-widget/stats-widget.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, PieChartComponent],
+  imports: [CommonModule, FormsModule, RouterLink, PieChartComponent, StatsWidgetComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -94,11 +95,62 @@ export class DashboardComponent implements OnInit {
     this.isSidebarOpen = !this.isSidebarOpen;
   }
 
+  // Load transactions and recalculate totals
   loadTransactions() {
-    this.financeService.getTransactions().subscribe(data => {
-      this.transactions = data;
-      this.calculateTotals();
+    this.financeService.getTransactions().subscribe({
+      next: (data) => {
+        this.transactions = data;
+        this.calculateTotals();
+      },
+      error: (err) => console.error('Error loading transactions:', err)
     });
+  }
+
+
+
+  // This method is missing in the original code, adding a placeholder for calculateTotals
+  // based on the context of the change.
+  calculateTotals() {
+    // Filter transactions for the current month
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const monthlyTransactions = this.transactions.filter(t => {
+      const tDate = new Date(t.date);
+      return tDate.getMonth() === currentMonth && tDate.getFullYear() === currentYear;
+    });
+
+    // Actual income and expense for the month
+    const actualIncome = monthlyTransactions
+      .filter(t => t.type === 'INCOME')
+      .reduce((sum, t) => sum + t.amount, 0);
+    const actualExpense = monthlyTransactions
+      .filter(t => t.type === 'EXPENSE')
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    // Total Income = Planned Income + Actual Income
+    this.totalIncome = Number(this.totalPlannedIncome) + actualIncome;
+    // Total Expense reflects actual expenses for the month
+    this.totalExpense = actualExpense;
+
+    // Balance calculation: (Planned Income - Planned Expenses) - Unplanned Expenses
+    if (this.totalPlannedIncome > 0 || this.totalPlannedExpense > 0) {
+      const projectedSavings = this.totalPlannedIncome - this.totalPlannedExpense;
+      let unplannedExpenses = 0;
+      if (this.budgetVariances && this.budgetVariances.length > 0) {
+        unplannedExpenses = this.budgetVariances
+          .filter(v => v.categoryType === 'EXPENSE' && v.planned === 0)
+          .reduce((sum, v) => sum + v.actual, 0);
+      }
+      this.balance = projectedSavings - unplannedExpenses;
+    } else {
+      this.balance = this.totalIncome - this.totalExpense;
+    }
+
+    // Round values to avoid floating point artifacts
+    this.totalIncome = Math.round(this.totalIncome * 100) / 100;
+    this.totalExpense = Math.round(this.totalExpense * 100) / 100;
+    this.balance = Math.round(this.balance * 100) / 100;
   }
 
   loadBudgetVariance() {
@@ -199,20 +251,7 @@ export class DashboardComponent implements OnInit {
     this.budgetHealthScore = Math.round(((totalCategories - overBudgetCount) / totalCategories) * 100);
   }
 
-  calculateTotals() {
-    // Calculate Total Actual Income
-    this.totalIncome = this.transactions
-      .filter(t => t.type === 'INCOME')
-      .reduce((sum, t) => sum + t.amount, 0);
 
-    // Calculate Total Actual Expenses
-    this.totalExpense = this.transactions
-      .filter(t => t.type === 'EXPENSE')
-      .reduce((sum, t) => sum + t.amount, 0);
-
-    // Calculate Current Balance
-    this.balance = this.totalIncome - this.totalExpense;
-  }
 
   // Quick Edit/Delete Methods
   openEditModal(transaction: Transaction) {
