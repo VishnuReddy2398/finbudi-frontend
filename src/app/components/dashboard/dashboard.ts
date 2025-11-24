@@ -200,31 +200,18 @@ export class DashboardComponent implements OnInit {
   }
 
   calculateTotals() {
-    // Calculate Spent on Planned Categories (where planned > 0)
-    const spentOnPlanned = this.budgetVariances
-      .filter((v: any) => v.planned > 0 && v.categoryType === 'EXPENSE')
-      .reduce((sum, v) => sum + v.actual, 0);
+    // Calculate Total Actual Income
+    this.totalIncome = this.transactions
+      .filter(t => t.type === 'INCOME')
+      .reduce((sum, t) => sum + t.amount, 0);
 
-    // Calculate Unplanned Spending (where planned == 0)
-    const unplannedSpending = this.budgetVariances
-      .filter((v: any) => v.planned === 0 && v.categoryType === 'EXPENSE')
-      .reduce((sum, v) => sum + v.actual, 0);
+    // Calculate Total Actual Expenses
+    this.totalExpense = this.transactions
+      .filter(t => t.type === 'EXPENSE')
+      .reduce((sum, t) => sum + t.amount, 0);
 
-    // Calculate Unplanned Income (where planned == 0)
-    const unplannedIncome = this.budgetVariances
-      .filter((v: any) => v.planned === 0 && v.categoryType === 'INCOME')
-      .reduce((sum, v) => sum + v.actual, 0);
-
-    // 1st Rectangle: Total Income (Planned + Unplanned)
-    this.totalIncome = this.totalPlannedIncome + unplannedIncome;
-
-    // 2nd Rectangle: Planned Expenses Tracker (Spent on Planned / Total Planned)
-    this.totalExpense = spentOnPlanned;
-    // totalPlannedExpense is already set from loadBudgetPlan
-
-    // 3rd Rectangle: Current Balance (Available Money)
-    // Formula: Total Income - Planned Expenses - Unplanned Spending
-    this.balance = this.totalIncome - this.totalPlannedExpense - unplannedSpending;
+    // Calculate Current Balance
+    this.balance = this.totalIncome - this.totalExpense;
   }
 
   // Quick Edit/Delete Methods

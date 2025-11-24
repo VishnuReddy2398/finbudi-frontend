@@ -2,7 +2,7 @@
 <div *ngIf="isLoggedIn"
     class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out"
     [class.-translate-x-full]="!isSidebarOpen">
-    <div class="p-6 border-b flex justify-between items-center bg-purple-600 text-white">
+    <div class="p-6 border-b flex justify-between items-center bg-brand-primary text-white">
         <h2 class="text-xl font-bold">Menu</h2>
         <button (click)="toggleSidebar()" class="hover:text-gray-200">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -12,27 +12,27 @@
     </div>
     <nav class="p-4 space-y-2">
         <a routerLink="/goals" (click)="toggleSidebar()"
-            class="block px-4 py-3 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-700 font-medium transition flex items-center gap-3">
+            class="block px-4 py-3 rounded-lg hover:bg-neutral-bg text-neutral-text-primary hover:text-brand-accent font-medium transition flex items-center gap-3">
             <span>🎯</span> Smart Goals
         </a>
         <a routerLink="/planning" (click)="toggleSidebar()"
-            class="block px-4 py-3 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-700 font-medium transition flex items-center gap-3">
+            class="block px-4 py-3 rounded-lg hover:bg-neutral-bg text-neutral-text-primary hover:text-brand-accent font-medium transition flex items-center gap-3">
             <span>📅</span> Monthly Planning
         </a>
         <a routerLink="/reports" (click)="toggleSidebar()"
-            class="block px-4 py-3 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-700 font-medium transition flex items-center gap-3">
+            class="block px-4 py-3 rounded-lg hover:bg-neutral-bg text-neutral-text-primary hover:text-brand-accent font-medium transition flex items-center gap-3">
             <span>📈</span> Reports
         </a>
         <a routerLink="/transactions" (click)="toggleSidebar()"
-            class="block px-4 py-3 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-700 font-medium transition flex items-center gap-3">
+            class="block px-4 py-3 rounded-lg hover:bg-neutral-bg text-neutral-text-primary hover:text-brand-accent font-medium transition flex items-center gap-3">
             <span>💳</span> Transactions
         </a>
         <a routerLink="/sessions" (click)="toggleSidebar()"
-            class="block px-4 py-3 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-700 font-medium transition flex items-center gap-3">
+            class="block px-4 py-3 rounded-lg hover:bg-neutral-bg text-neutral-text-primary hover:text-brand-accent font-medium transition flex items-center gap-3">
             <span>📱</span> Active Sessions
         </a>
         <a routerLink="/mfa-setup" (click)="toggleSidebar()"
-            class="block px-4 py-3 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-700 font-medium transition flex items-center gap-3">
+            class="block px-4 py-3 rounded-lg hover:bg-neutral-bg text-neutral-text-primary hover:text-brand-accent font-medium transition flex items-center gap-3">
             <span>🔐</span> MFA Setup
         </a>
     </nav>
@@ -42,58 +42,61 @@
 <div *ngIf="isSidebarOpen && isLoggedIn" (click)="toggleSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-40">
 </div>
 
-<nav class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white p-4 shadow-2xl relative z-30">
+<nav class="bg-brand-primary text-white p-4 shadow-md relative z-30">
     <div class="container mx-auto flex justify-between items-center">
         <div class="flex items-center gap-4">
             <!-- Hamburger Button -->
             <button *ngIf="isLoggedIn" (click)="toggleSidebar()"
-                class="p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition">
+                class="p-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
-            <a routerLink="/home" class="text-2xl font-bold drop-shadow-lg hover:underline">💰 FinBudi</a>
+            <a routerLink="/home"
+                class="text-2xl font-bold hover:text-brand-accent transition-colors flex items-center gap-2">
+                <span class="text-3xl">💰</span> FinBudi
+            </a>
         </div>
 
         <div class="space-x-2 flex items-center">
             <!-- Public Links -->
             <ng-container *ngIf="!isLoggedIn">
                 <a routerLink="/home"
-                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 font-semibold">Home</a>
+                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 font-medium transition">Home</a>
                 <a routerLink="/login"
-                    class="px-4 py-2 rounded-lg border border-white border-opacity-30 hover:bg-white hover:bg-opacity-10 font-semibold">Login</a>
+                    class="px-4 py-2 rounded-lg border border-white border-opacity-30 hover:bg-white hover:bg-opacity-10 font-medium transition">Login</a>
                 <a routerLink="/signup"
-                    class="px-4 py-2 rounded-lg bg-yellow-400 text-purple-900 font-bold hover:bg-yellow-300 shadow-lg">Sign
+                    class="px-4 py-2 rounded-lg bg-brand-accent text-white font-bold hover:bg-blue-600 shadow-md transition">Sign
                     Up</a>
             </ng-container>
 
             <!-- Logged In Links -->
             <ng-container *ngIf="isLoggedIn">
-                <a routerLink="/dashboard" routerLinkActive="bg-white bg-opacity-30"
-                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 font-semibold flex items-center gap-2">
-                    <span>📊</span> Dashboard
+                <a routerLink="/dashboard" routerLinkActive="bg-white bg-opacity-10"
+                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 font-medium flex items-center gap-2 transition">
+                    <span>📊</span> <span class="hidden md:inline">Dashboard</span>
                 </a>
-                <a routerLink="/planning" routerLinkActive="bg-white bg-opacity-30"
-                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 font-semibold flex items-center gap-2">
-                    <span>📅</span> Monthly Planning
+                <a routerLink="/planning" routerLinkActive="bg-white bg-opacity-10"
+                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 font-medium flex items-center gap-2 transition">
+                    <span>📅</span> <span class="hidden md:inline">Planning</span>
                 </a>
-                <a routerLink="/add-transaction" routerLinkActive="bg-white bg-opacity-30"
-                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 font-semibold flex items-center gap-2">
-                    <span>➕</span> Add Transaction
+                <a routerLink="/add-transaction" routerLinkActive="bg-white bg-opacity-10"
+                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 font-medium flex items-center gap-2 transition">
+                    <span>➕</span> <span class="hidden md:inline">Add</span>
                 </a>
-                <a routerLink="/transactions" routerLinkActive="bg-white bg-opacity-30"
-                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 font-semibold flex items-center gap-2">
-                    <span>💳</span> Transactions
+                <a routerLink="/transactions" routerLinkActive="bg-white bg-opacity-10"
+                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 font-medium flex items-center gap-2 transition">
+                    <span>💳</span> <span class="hidden md:inline">Transactions</span>
                 </a>
                 <button (click)="logout()"
-                    class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 font-bold shadow-lg flex items-center gap-2">
-                    <span>🚪</span> Logout
+                    class="ml-2 px-4 py-2 rounded-lg border border-white border-opacity-30 text-white hover:bg-white hover:bg-opacity-10 font-medium transition flex items-center gap-2">
+                    <span>🚪</span> <span class="hidden md:inline">Logout</span>
                 </button>
             </ng-container>
         </div>
     </div>
 </nav>
 
-<div class="min-h-screen bg-gray-50">
+<div class="min-h-screen bg-neutral-bg">
     <router-outlet></router-outlet>
 </div>

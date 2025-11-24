@@ -1,98 +1,80 @@
-<div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
-    <!-- Animated Background Elements -->
-    <div class="absolute inset-0 opacity-20">
+<div class="min-h-screen bg-slate-950 relative overflow-hidden">
+    <!-- Background (Static) -->
+    <div class="absolute inset-0">
+        <!-- Radial Gradient for depth -->
         <div
-            class="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl animate-blob">
-        </div>
-        <div
-            class="absolute top-40 right-10 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000">
-        </div>
-        <div
-            class="absolute bottom-20 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000">
+            class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black">
         </div>
     </div>
 
     <!-- Content -->
     <div class="container mx-auto px-4 py-16 relative z-10">
         <!-- Hero Section -->
-        <div class="text-center mb-16 animate-fade-in">
-            <h1 class="text-7xl font-extrabold text-white mb-6 drop-shadow-2xl">
-                Master Your <span
-                    class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-pink-500">Money</span>
+        <div class="text-center mb-20 animate-fade-in relative">
+            <!-- New Feature Badge -->
+            <div
+                class="inline-flex items-center gap-2 bg-slate-800/50 border border-slate-700 rounded-full px-4 py-1.5 mb-8 backdrop-blur-sm hover:bg-slate-800/70 transition-colors cursor-default">
+                <span class="flex h-2 w-2 relative">
+                    <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-accent opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-accent"></span>
+                </span>
+                <span class="text-sm font-medium text-slate-300">New: AI-Powered Insights</span>
+            </div>
+
+            <h1
+                class="text-6xl md:text-7xl font-extrabold text-white mb-8 tracking-tight leading-tight drop-shadow-2xl">
+                Financial Freedom, <br />
+                <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">Simplified.</span>
             </h1>
-            <p class="text-2xl text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed drop-shadow-lg">
-                Take control of your financial future with intelligent tracking, smart insights, and powerful analytics
+
+            <p class="text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+                Join 10,000+ users who are mastering their money with intelligent tracking, smart goals, and real-time
+                analytics.
             </p>
 
-            <!-- Animated Quote Section -->
-            <div
-                class="bg-white bg-opacity-10 backdrop-blur-lg rounded-3xl p-8 mb-12 max-w-4xl mx-auto border border-white border-opacity-20 shadow-2xl transform hover:scale-105 transition-all duration-500">
-                <svg class="w-12 h-12 text-yellow-400 mx-auto mb-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path
-                        d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                </svg>
-                <p class="text-white text-2xl font-light italic mb-4 animate-fade-in">
-                    "{{ currentQuote.text }}"
-                </p>
-                <p class="text-yellow-400 font-semibold text-lg">
-                    — {{ currentQuote.author }}
-                </p>
-            </div>
-
             <!-- CTA Buttons -->
-            <div class="space-x-6 mb-12" *ngIf="!isLoggedIn">
-                <a routerLink="/login" class="inline-block relative group">
-                    <div
-                        class="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-300">
-                    </div>
-                    <div
-                        class="relative bg-gradient-to-r from-pink-500 to-purple-600 text-white px-10 py-5 rounded-full font-bold text-xl shadow-2xl transform group-hover:scale-110 transition-all duration-300">
-                        Get Started →
-                    </div>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16" *ngIf="!isLoggedIn">
+                <a routerLink="/signup"
+                    class="px-8 py-4 bg-brand-accent hover:bg-blue-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all duration-200 hover:-translate-y-0.5">
+                    Get Started Free
+                    <span class="inline-block ml-2">→</span>
                 </a>
-                <a routerLink="/signup" class="inline-block relative group">
-                    <div
-                        class="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-300">
-                    </div>
-                    <div
-                        class="relative bg-white text-purple-900 px-10 py-5 rounded-full font-bold text-xl shadow-2xl transform group-hover:scale-110 transition-all duration-300 border-2 border-yellow-400">
-                        Create Free Account
-                    </div>
+                <a routerLink="/login"
+                    class="px-8 py-4 bg-slate-800/50 hover:bg-slate-800 text-white border border-slate-700 hover:border-slate-600 rounded-xl font-semibold text-lg backdrop-blur-sm transition-all duration-200">
+                    Log In
                 </a>
             </div>
 
-            <div *ngIf="isLoggedIn" class="animate-fade-in">
-                <p class="text-4xl text-white mb-8 drop-shadow-lg">
-                    Welcome back, <span
-                        class="font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-pink-500">{{
-                        username }}</span>! 🎉
-                </p>
-                <a routerLink="/dashboard" class="inline-block relative group">
-                    <div
-                        class="absolute -inset-1 bg-gradient-to-r from-green-400 to-blue-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-300">
-                    </div>
-                    <div
-                        class="relative bg-gradient-to-r from-green-500 to-blue-600 text-white px-12 py-6 rounded-full font-bold text-2xl shadow-2xl transform group-hover:scale-110 transition-all duration-300">
-                        Open Dashboard →
-                    </div>
+            <div *ngIf="isLoggedIn" class="animate-fade-in mb-16">
+                <a routerLink="/dashboard"
+                    class="inline-flex items-center gap-3 px-8 py-4 bg-brand-accent hover:bg-blue-600 text-white rounded-xl font-bold text-lg shadow-lg transition-all duration-200 hover:-translate-y-0.5">
+                    <span>Go to Dashboard</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
                 </a>
             </div>
+            -
+
         </div>
 
         <!-- Features Grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             <!-- Feature 1 -->
             <div
-                class="bg-white bg-opacity-10 backdrop-blur-lg rounded-3xl shadow-2xl p-8 transform hover:scale-105 hover:bg-opacity-20 transition-all duration-300 border border-white border-opacity-20">
+                class="bg-slate-800 bg-opacity-50 backdrop-blur-lg rounded-3xl shadow-2xl p-8 transform hover:scale-105 hover:bg-opacity-70 transition-all duration-300 border border-slate-700">
                 <div
-                    class="bg-gradient-to-br from-green-400 to-emerald-600 rounded-full w-20 h-20 flex items-center justify-center mb-6 mx-auto shadow-xl">
+                    class="bg-gradient-to-br from-brand-secondary to-teal-600 rounded-full w-20 h-20 flex items-center justify-center mb-6 mx-auto shadow-xl">
                     <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                 </div>
                 <h3 class="text-2xl font-bold text-white mb-4 text-center">Smart Tracking</h3>
-                <p class="text-gray-200 leading-relaxed text-center">
+                <p class="text-slate-300 leading-relaxed text-center">
                     Automatically categorize and track every transaction with AI-powered insights into your spending
                     habits.
                 </p>
@@ -100,32 +82,32 @@
 
             <!-- Feature 2 -->
             <div
-                class="bg-white bg-opacity-10 backdrop-blur-lg rounded-3xl shadow-2xl p-8 transform hover:scale-105 hover:bg-opacity-20 transition-all duration-300 border border-white border-opacity-20">
+                class="bg-slate-800 bg-opacity-50 backdrop-blur-lg rounded-3xl shadow-2xl p-8 transform hover:scale-105 hover:bg-opacity-70 transition-all duration-300 border border-slate-700">
                 <div
-                    class="bg-gradient-to-br from-blue-400 to-indigo-600 rounded-full w-20 h-20 flex items-center justify-center mb-6 mx-auto shadow-xl">
+                    class="bg-gradient-to-br from-brand-accent to-blue-600 rounded-full w-20 h-20 flex items-center justify-center mb-6 mx-auto shadow-xl">
                     <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
                 <h3 class="text-2xl font-bold text-white mb-4 text-center">Goal Planning</h3>
-                <p class="text-gray-200 leading-relaxed text-center">
+                <p class="text-slate-300 leading-relaxed text-center">
                     Set financial goals and watch your progress with real-time updates and intelligent recommendations.
                 </p>
             </div>
 
             <!-- Feature 3 -->
             <div
-                class="bg-white bg-opacity-10 backdrop-blur-lg rounded-3xl shadow-2xl p-8 transform hover:scale-105 hover:bg-opacity-20 transition-all duration-300 border border-white border-opacity-20">
+                class="bg-slate-800 bg-opacity-50 backdrop-blur-lg rounded-3xl shadow-2xl p-8 transform hover:scale-105 hover:bg-opacity-70 transition-all duration-300 border border-slate-700">
                 <div
-                    class="bg-gradient-to-br from-purple-400 to-pink-600 rounded-full w-20 h-20 flex items-center justify-center mb-6 mx-auto shadow-xl">
+                    class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full w-20 h-20 flex items-center justify-center mb-6 mx-auto shadow-xl">
                     <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                 </div>
                 <h3 class="text-2xl font-bold text-white mb-4 text-center">Detailed Reports</h3>
-                <p class="text-gray-200 leading-relaxed text-center">
+                <p class="text-slate-300 leading-relaxed text-center">
                     Generate comprehensive reports to understand trends and make data-driven financial decisions.
                 </p>
             </div>
@@ -133,39 +115,85 @@
 
         <!-- Security & Trust Section -->
         <div
-            class="bg-white bg-opacity-10 backdrop-blur-lg rounded-3xl shadow-2xl p-12 text-center border border-white border-opacity-20">
+            class="bg-slate-800 bg-opacity-50 backdrop-blur-lg rounded-3xl shadow-2xl p-12 text-center border border-slate-700">
             <div class="flex items-center justify-center gap-6 mb-6">
-                <svg class="w-16 h-16 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-16 h-16 text-brand-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
                 <h3 class="text-4xl font-bold text-white">Military-Grade Security</h3>
             </div>
-            <p class="text-gray-200 text-lg max-w-3xl mx-auto leading-relaxed">
+            <p class="text-slate-300 text-lg max-w-3xl mx-auto leading-relaxed">
                 Your financial data is protected with enterprise-level encryption, multi-factor authentication,
                 advanced rate limiting, and continuous security monitoring. We never compromise on your privacy.
             </p>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-yellow-400 mb-2">256-bit</div>
-                    <div class="text-gray-300">Encryption</div>
+                    <div class="text-3xl font-bold text-brand-accent mb-2">256-bit</div>
+                    <div class="text-slate-400">Encryption</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-yellow-400 mb-2">99.9%</div>
-                    <div class="text-gray-300">Uptime</div>
+                    <div class="text-3xl font-bold text-brand-accent mb-2">99.9%</div>
+                    <div class="text-slate-400">Uptime</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-yellow-400 mb-2">24/7</div>
-                    <div class="text-gray-300">Monitoring</div>
+                    <div class="text-3xl font-bold text-brand-accent mb-2">24/7</div>
+                    <div class="text-slate-400">Monitoring</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-yellow-400 mb-2">GDPR</div>
-                    <div class="text-gray-300">Compliant</div>
+                    <div class="text-3xl font-bold text-brand-accent mb-2">GDPR</div>
+                    <div class="text-slate-400">Compliant</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    @keyframes blob {
+
+        0%,
+        100% {
+            transform: translate(0px, 0px) scale(1);
+        }
+
+        33% {
+            transform: translate(30px, -50px) scale(1.1);
+        }
+
+        66% {
+            transform: translate(-20px, 20px) scale(0.9);
+        }
+    }
+
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-in {
+        animation: fade-in 1s ease-out;
+    }
+</style>
 
 <style>
     @keyframes blob {
