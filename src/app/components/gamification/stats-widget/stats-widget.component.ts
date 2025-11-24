@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GamificationService, UserStats } from '../../../services/gamification.service';
 
@@ -12,6 +12,11 @@ import { GamificationService, UserStats } from '../../../services/gamification.s
 export class StatsWidgetComponent implements OnInit {
     stats: UserStats | null = null;
     loading = true;
+
+    @Input() telegramLinked: boolean = false;
+    @Input() telegramUsername: string | null = null;
+    @Output() openTelegramDialog = new EventEmitter<void>();
+    @Output() unlinkTelegram = new EventEmitter<void>();
 
     constructor(private gamificationService: GamificationService) { }
 

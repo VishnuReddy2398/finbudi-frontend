@@ -1,7 +1,8 @@
 <div class="p-6">
-  <div class="max-w-7xl mx-auto">
-    <!-- Gamification Stats -->
-    <app-stats-widget></app-stats-widget>
+  <div class="dashboard-container">
+    <!-- Gamification Stats with Telegram Link -->
+    <app-stats-widget [telegramLinked]="telegramLinked" [telegramUsername]="telegramUsername"
+      (openTelegramDialog)="openTelegramDialog()" (unlinkTelegram)="unlinkTelegram()"></app-stats-widget>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -234,3 +235,7 @@
     </div>
   </div>
 </div>
+
+<!-- Telegram Link Dialog -->
+<app-telegram-link-dialog *ngIf="showTelegramDialog" (closeEvent)="closeTelegramDialog()">
+</app-telegram-link-dialog>

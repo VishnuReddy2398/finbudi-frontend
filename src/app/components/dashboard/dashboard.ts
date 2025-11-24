@@ -7,11 +7,13 @@ import { BudgetService } from '../../services/budget.service';
 import { AuthService } from '../../services/auth.service';
 import { PieChartComponent } from '../charts/pie-chart.component';
 import { StatsWidgetComponent } from '../gamification/stats-widget/stats-widget.component';
+import { TelegramLinkDialogComponent } from '../telegram-link-dialog/telegram-link-dialog.component';
+import { TelegramService } from '../../services/telegram.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, PieChartComponent, StatsWidgetComponent],
+  imports: [CommonModule, FormsModule, RouterLink, PieChartComponent, StatsWidgetComponent, TelegramLinkDialogComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -29,6 +31,11 @@ export class DashboardComponent implements OnInit {
   // Email verification
   isEmailVerified: boolean = true;
   showVerificationBanner: boolean = false;
+
+  // Telegram integration
+  showTelegramDialog: boolean = false;
+  telegramLinked: boolean = false;
+  telegramUsername: string | null = null;
 
   // Budget variance data
   budgetVariances: any[] = [];
@@ -57,7 +64,8 @@ export class DashboardComponent implements OnInit {
   constructor(
     private financeService: FinanceService,
     private budgetService: BudgetService,
-    private authService: AuthService
+    private authService: AuthService,
+    private telegramService: TelegramService
   ) { }
 
   ngOnInit() {
@@ -65,6 +73,7 @@ export class DashboardComponent implements OnInit {
     this.loadCategories();
     this.loadBudgetVariance();
     this.checkVerificationStatus();
+    this.loadTelegramStatus();
 
     const now = new Date();
     this.loadBudgetPlan(now.getMonth() + 1, now.getFullYear());
@@ -306,5 +315,44 @@ export class DashboardComponent implements OnInit {
         alert('Failed to delete transaction');
       }
     });
+  }
+
+  // Telegram methods
+  loadTelegramStatus() {
+    this.telegramService.getTelegramStatus().subscribe({
+      next: (status) => {
+        this.telegramLinked = status.linked;
+        this.telegramUsername = status.username;
+      },
+      error: (err) => {
+        console.error('Error loading Telegram status:', err);
+      }
+    });
+  }
+
+  openTelegramDialog() {
+    this.showTelegramDialog = true;
+  }
+
+  closeTelegramDialog() {
+    this.showTelegramDialog = false;
+    // Reload status in case user linked their account
+    this.loadTelegramStatus();
+  }
+
+  unlinkTelegram() {
+    if (confirm('Are you sure you want to unlink your Telegram account?')) {
+      this.telegramService.unlinkTelegram().subscribe({
+        next: () => {
+          this.telegramLinked = false;
+          this.telegramUsername = null;
+          alert('Telegram account unlinked successfully');
+        },
+        error: (err) => {
+          console.error('Error unlinking Telegram:', err);
+          alert('Failed to unlink Telegram account');
+        }
+      });
+    }
   }
 }
