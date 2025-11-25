@@ -1,0 +1,145 @@
+<div class="container mx-auto p-6 max-w-7xl">
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                <span class="text-4xl">📊</span> Smart Budgeting
+            </h1>
+            <p class="text-slate-500 mt-2 text-lg">Control your spending and save more.</p>
+        </div>
+        <button (click)="openSetBudget()"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-xl shadow-lg shadow-blue-200 flex items-center gap-2 transition-all duration-200 transform hover:-translate-y-0.5">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Set New Budget
+        </button>
+    </div>
+
+    <!-- Safe to Spend Card -->
+    <div
+        class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 text-white shadow-xl mb-10 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full -ml-10 -mb-10 blur-2xl"></div>
+
+        <div class="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+            <div>
+                <div class="text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Total Budget</div>
+                <div class="text-3xl font-bold">₹{{overallStatus.totalBudget | number}}</div>
+            </div>
+            <div>
+                <div class="text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Total Spent</div>
+                <div class="text-3xl font-bold text-red-400">₹{{overallStatus.totalSpent | number}}</div>
+            </div>
+            <div>
+                <div class="text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Remaining</div>
+                <div class="text-3xl font-bold text-emerald-400">₹{{overallStatus.remaining | number}}</div>
+            </div>
+        </div>
+
+        <div
+            class="mt-8 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+            <div>
+                <div class="text-lg font-semibold text-blue-200 mb-1">Safe to Spend Daily</div>
+                <div class="text-4xl font-bold text-white">₹{{safeDailySpend | number:'1.0-0'}} <span
+                        class="text-lg text-slate-400 font-normal">/ day</span></div>
+            </div>
+            <div class="bg-white/10 px-6 py-3 rounded-xl backdrop-blur-sm">
+                <span class="text-2xl font-bold">{{daysRemaining}}</span> <span class="text-slate-300">days left in
+                    month</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget List -->
+    <h2 class="text-xl font-bold mb-6 text-slate-700 flex items-center gap-2">
+        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        Category Budgets
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div *ngFor="let budget of budgets"
+            class="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 p-6 border border-slate-100">
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-2xl">
+                        {{budget.categoryIcon}}
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800">{{budget.categoryName}}</h3>
+                        <div class="text-xs font-semibold px-2 py-0.5 rounded-full inline-block mt-1" [ngClass]="{
+                                'bg-emerald-50 text-emerald-700': budget.status === 'SAFE',
+                                'bg-yellow-50 text-yellow-700': budget.status === 'WARNING',
+                                'bg-orange-50 text-orange-700': budget.status === 'DANGER',
+                                'bg-red-50 text-red-700': budget.status === 'EXCEEDED'
+                            }">
+                            {{budget.status}}
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-slate-500">Limit</div>
+                    <div class="font-bold text-slate-800">₹{{budget.limit | number}}</div>
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <div class="flex justify-between text-sm mb-2">
+                    <span class="font-medium text-slate-600">Spent: <span
+                            class="font-bold text-slate-800">₹{{budget.spent | number}}</span></span>
+                    <span class="font-medium text-slate-500">{{budget.percentage | number:'1.0-0'}}%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-1000 ease-out"
+                        [ngClass]="getProgressBarColor(budget.percentage)"
+                        [style.width.%]="budget.percentage > 100 ? 100 : budget.percentage">
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-xs text-right mt-2 font-medium"
+                [ngClass]="{'text-red-500': budget.remaining < 0, 'text-emerald-600': budget.remaining >= 0}">
+                {{budget.remaining >= 0 ? 'Left: ₹' + (budget.remaining | number) : 'Overspent: ₹' + (budget.remaining *
+                -1 | number)}}
+            </div>
+        </div>
+    </div>
+
+    <!-- Set Budget Modal -->
+    <div *ngIf="showSetBudget"
+        class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md transform transition-all">
+            <h2 class="text-xl font-bold mb-6 text-slate-800 flex items-center gap-2">
+                <span class="text-2xl">💰</span> Set Monthly Budget
+            </h2>
+
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Category</label>
+                    <select [(ngModel)]="selectedCategory"
+                        class="block w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 border transition-colors bg-white">
+                        <option [ngValue]="null" disabled>Select a category</option>
+                        <option *ngFor="let cat of categories" [ngValue]="cat.id">{{cat.icon}} {{cat.name}}</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Monthly Limit (₹)</label>
+                    <input type="number" [(ngModel)]="budgetAmount" placeholder="0.00"
+                        class="block w-full rounded-xl border-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 border transition-colors text-lg font-bold text-slate-800">
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end space-x-3">
+                <button (click)="showSetBudget = false"
+                    class="px-5 py-2.5 text-slate-600 hover:bg-slate-50 font-medium rounded-xl transition-colors">Cancel</button>
+                <button (click)="saveBudget()"
+                    class="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all transform hover:-translate-y-0.5">
+                    Save Budget
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

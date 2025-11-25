@@ -182,4 +182,9 @@ export class GoalsComponent implements OnInit {
         if (!goal.targetAmount || goal.targetAmount === 0) return 0;
         return Math.min(100, (goal.currentAmount / goal.targetAmount) * 100);
     }
+    getGoalPriority(goalId: string): number {
+        const id = parseInt(goalId);
+        const goal = this.goals.find(g => g.id === id);
+        return goal ? goal.priority : 3;
+    }
 }

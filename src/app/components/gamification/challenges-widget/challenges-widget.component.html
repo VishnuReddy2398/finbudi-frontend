@@ -1,0 +1,86 @@
+<div>
+
+
+    <!-- Modal Popup -->
+    <div class="modal-overlay" *ngIf="showModal" (click)="showModal = false">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <div>
+                    <h2>🏆 Active Challenges</h2>
+                    <p class="modal-subtitle">Join challenges to earn points and build better financial habits!</p>
+                </div>
+                <button class="close-btn" (click)="showModal = false">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div *ngIf="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading challenges...</p>
+            </div>
+
+            <div *ngIf="error" class="error-message">
+                {{ error }}
+            </div>
+
+            <div *ngIf="!loading && !error" class="challenges-grid">
+                <div *ngIf="activeChallenges.length === 0" class="no-challenges">
+                    <p>No active challenges at the moment.</p>
+                    <p class="hint">Check back soon for new challenges!</p>
+                </div>
+
+                <div *ngFor="let challenge of activeChallenges" class="challenge-card"
+                    [class.enrolled]="isEnrolled(challenge.id)">
+                    <div class="challenge-header">
+                        <span class="challenge-icon">{{ getChallengeIcon(challenge.type) }}</span>
+                        <div class="challenge-title">
+                            <h4>{{ challenge.name }}</h4>
+                            <p class="challenge-description">{{ challenge.description }}</p>
+                        </div>
+                    </div>
+
+                    <div class="challenge-details">
+                        <div class="detail-item">
+                            <span class="label">Reward</span>
+                            <span class="value">⭐ {{ challenge.rewardPoints }} pts</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Ends in</span>
+                            <span class="value">{{ getDaysRemaining(challenge.endDate) }} days</span>
+                        </div>
+                    </div>
+
+                    <!-- Progress if enrolled -->
+                    <div *ngIf="isEnrolled(challenge.id)" class="challenge-progress">
+                        <div class="progress-header">
+                            <span class="progress-label">Progress</span>
+                            <span class="progress-value">
+                                {{ getUserChallenge(challenge.id)?.currentProgress }} / {{ challenge.targetValue }}
+                            </span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar"
+                                [class]="getProgressBarClass(getProgressPercentage(getUserChallenge(challenge.id)!))"
+                                [style.width.%]="getProgressPercentage(getUserChallenge(challenge.id)!)">
+                            </div>
+                        </div>
+                        <div class="status-badge"
+                            [class]="getUserChallenge(challenge.id)?.status?.toLowerCase() || 'active'">
+                            {{ getUserChallenge(challenge.id)?.status }}
+                        </div>
+                    </div>
+
+                    <!-- Join button if not enrolled -->
+                    <div *ngIf="!isEnrolled(challenge.id)" class="challenge-actions">
+                        <button class="join-btn" (click)="enrollInChallenge(challenge.id)">
+                            Join Challenge
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

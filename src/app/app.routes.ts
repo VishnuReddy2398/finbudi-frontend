@@ -30,6 +30,9 @@ export const routes: Routes = [
     { path: 'goals', loadComponent: () => import('./components/goals/goals.component').then(m => m.GoalsComponent), canActivate: [authGuard] },
     { path: 'planning', loadComponent: () => import('./components/planning/planning.component').then(m => m.PlanningComponent), canActivate: [authGuard] },
     { path: 'achievements', loadComponent: () => import('./components/gamification/achievements-page/achievements-page.component').then(m => m.AchievementsPageComponent), canActivate: [authGuard] },
+    { path: 'budget', loadComponent: () => import('./components/budget/budget').then(m => m.BudgetComponent), canActivate: [authGuard] },
+    { path: 'analytics', loadComponent: () => import('./components/analytics/analytics').then(m => m.AnalyticsComponent), canActivate: [authGuard] },
+    { path: 'security', loadComponent: () => import('./components/security-page/security-page').then(m => m.SecurityPageComponent), canActivate: [authGuard] },
     { path: 'leaderboard', loadComponent: () => import('./components/gamification/leaderboard-page/leaderboard-page.component').then(m => m.LeaderboardPageComponent), canActivate: [authGuard] },
     { path: '', redirectTo: 'home', pathMatch: 'full' }
 ];

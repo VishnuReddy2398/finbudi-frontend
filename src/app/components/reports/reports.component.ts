@@ -30,9 +30,15 @@ export class ReportsComponent implements OnInit {
     }
 
     loadReport() {
-        this.budgetService.getVarianceReport(this.selectedMonth, this.selectedYear).subscribe({
+        this.budgetService.getBudgets(this.selectedMonth, this.selectedYear).subscribe({
             next: (data) => {
-                this.variances = data;
+                this.variances = data.map(b => ({
+                    category: b.categoryName,
+                    planned: b.limit,
+                    actual: b.spent,
+                    variance: b.remaining,
+                    status: b.status === 'SAFE' ? 'UNDER_BUDGET' : (b.status === 'EXCEEDED' ? 'OVER_BUDGET' : 'ON_TRACK')
+                }));
                 this.calculateTotals();
             },
             error: (err) => console.error('Error loading variance report:', err)

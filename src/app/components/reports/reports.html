@@ -1,62 +1,146 @@
 <div class="p-6">
-    <h1 class="text-3xl font-bold mb-6 text-gray-800">Financial Reports</h1>
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800">Financial Reports</h1>
+            <p class="text-slate-500 mt-1">Analyze your income and expenses over time</p>
+        </div>
 
-    <div class="flex space-x-4 mb-8">
-        <button (click)="generateWeeklyReport()"
-            class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
-            Generate Weekly Report
-        </button>
-        <button (click)="generateMonthlyReport()"
-            class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
-            Generate Monthly Report
-        </button>
+        <div class="flex flex-wrap gap-3">
+            <!-- Export Controls -->
+            <div class="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+                <select [(ngModel)]="selectedMonth"
+                    class="border-none bg-transparent text-sm font-medium text-slate-700 focus:ring-0 cursor-pointer py-1.5 pl-3 pr-8">
+                    <option [ngValue]="1">January</option>
+                    <option [ngValue]="2">February</option>
+                    <option [ngValue]="3">March</option>
+                    <option [ngValue]="4">April</option>
+                    <option [ngValue]="5">May</option>
+                    <option [ngValue]="6">June</option>
+                    <option [ngValue]="7">July</option>
+                    <option [ngValue]="8">August</option>
+                    <option [ngValue]="9">September</option>
+                    <option [ngValue]="10">October</option>
+                    <option [ngValue]="11">November</option>
+                    <option [ngValue]="12">December</option>
+                </select>
+                <select [(ngModel)]="selectedYear"
+                    class="border-none bg-transparent text-sm font-medium text-slate-700 focus:ring-0 cursor-pointer py-1.5 pl-3 pr-8 border-l border-slate-100">
+                    <option [ngValue]="2023">2023</option>
+                    <option [ngValue]="2024">2024</option>
+                    <option [ngValue]="2025">2025</option>
+                </select>
+                <div class="flex border-l border-slate-100 pl-1">
+                    <button (click)="downloadPdf()" title="Download PDF"
+                        class="p-2 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                    </button>
+                    <button (click)="downloadExcel()" title="Download Excel"
+                        class="p-2 hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="w-px h-10 bg-slate-200 mx-1 hidden md:block"></div>
+
+            <button (click)="generateWeeklyReport()"
+                class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold py-2 px-4 rounded-xl shadow-sm transition-all duration-200 flex items-center gap-2 text-sm"
+                [class.ring-2]="reportType === 'WEEKLY'" [class.ring-blue-500]="reportType === 'WEEKLY'"
+                [class.border-blue-500]="reportType === 'WEEKLY'">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Weekly
+            </button>
+            <button (click)="generateMonthlyReport()"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow-lg shadow-blue-200 transition-all duration-200 flex items-center gap-2 text-sm"
+                [class.ring-2]="reportType === 'MONTHLY'" [class.ring-offset-2]="reportType === 'MONTHLY'">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Monthly
+            </button>
+        </div>
     </div>
 
-    <div *ngIf="reportType" class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h2 class="text-xl font-semibold text-gray-800">{{ reportType === 'WEEKLY' ? 'Weekly' : 'Monthly' }} Report
+    <div *ngIf="reportType" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <span class="w-2 h-8 bg-blue-500 rounded-full"></span>
+                {{ reportType === 'WEEKLY' ? 'Weekly' : 'Monthly' }} Report
             </h2>
-            <div class="text-sm">
-                <span class="text-green-600 font-bold mr-4">Income: ₹{{ totalIncome }}</span>
-                <span class="text-red-600 font-bold">Expenses: ₹{{ totalExpense }}</span>
+            <div class="flex items-center gap-6 text-sm">
+                <div class="flex flex-col items-end">
+                    <span class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Income</span>
+                    <span class="text-emerald-600 font-bold text-lg">+₹{{ totalIncome }}</span>
+                </div>
+                <div class="w-px h-8 bg-slate-200"></div>
+                <div class="flex flex-col items-end">
+                    <span class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Expenses</span>
+                    <span class="text-red-600 font-bold text-lg">-₹{{ totalExpense }}</span>
+                </div>
             </div>
         </div>
 
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+            <table class="min-w-full divide-y divide-slate-100">
+                <thead class="bg-slate-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                            Date</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                             Description</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                             Category</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                            Type</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
                             Amount</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    <tr *ngFor="let t of transactions">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ t.date }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ t.description }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ t.category?.name }}</td>
+                <tbody class="bg-white divide-y divide-slate-100">
+                    <tr *ngFor="let t of transactions" class="hover:bg-slate-50/50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600 font-medium">{{ t.date }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900 font-medium">{{ t.description }}
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                             <span
-                                [class]="t.type === 'INCOME' ? 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800' : 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800'">
-                                {{ t.type }}
+                                class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                                {{ t.category?.name }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"
-                            [class.text-green-600]="t.type === 'INCOME'" [class.text-red-600]="t.type === 'EXPENSE'">
-                            ₹{{ t.amount }}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <span
+                                [class]="t.type === 'INCOME' ? 'px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100' : 'px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-50 text-red-700 border border-red-100'">
+                                {{ t.type === 'INCOME' ? 'Income' : 'Expense' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-right"
+                            [class.text-emerald-600]="t.type === 'INCOME'" [class.text-red-600]="t.type === 'EXPENSE'">
+                            {{ t.type === 'INCOME' ? '+' : '-' }}₹{{ t.amount }}
                         </td>
                     </tr>
                     <tr *ngIf="transactions.length === 0">
-                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">No transactions found for
-                            this period.</td>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center justify-center text-slate-400">
+                                <svg class="w-12 h-12 mb-3 opacity-50" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <p class="text-sm font-medium">No transactions found for this period.</p>
+                            </div>
+                        </td>
                     </tr>
                 </tbody>
             </table>

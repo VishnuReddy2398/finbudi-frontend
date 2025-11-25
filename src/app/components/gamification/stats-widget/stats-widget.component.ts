@@ -13,6 +13,7 @@ export class StatsWidgetComponent implements OnInit {
     stats: UserStats | null = null;
     loading = true;
 
+    @Output() openChallenges = new EventEmitter<void>();
     @Input() telegramLinked: boolean = false;
     @Input() telegramUsername: string | null = null;
     @Output() openTelegramDialog = new EventEmitter<void>();

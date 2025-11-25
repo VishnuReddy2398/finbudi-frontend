@@ -91,4 +91,8 @@ export class AuthService {
             newPassword
         }, httpOptions);
     }
+
+    deleteAccount(password: string): Observable<any> {
+        return this.http.delete(AUTH_API + `delete-account?password=${password}`, httpOptions);
+    }
 }

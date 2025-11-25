@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BudgetService } from '../../services/budget.service';
+import { FinanceService } from '../../services/finance';
 
 interface PlanItem {
   categoryName: string;
@@ -38,17 +39,26 @@ export class PlanningComponent implements OnInit {
   customVariableCategory = '';
 
   // Predefined categories
-  fixedExpenseCategories = ['Rent', 'EMI', 'Insurance', 'Subscriptions'];
-  variableExpenseCategories = ['Food', 'Travel', 'Bills', 'Entertainment', 'Shopping'];
+  fixedExpenseCategories: string[] = ['Rent', 'Car Loan EMI', 'Personal Loan EMI', 'Phone EMI', 'SIP', 'Bills'];
+  variableExpenseCategories: string[] = ['Food', 'Petrol', 'Movie', 'Vacation', 'Shopping', 'Health'];
 
-  constructor(private budgetService: BudgetService) {
+  constructor(
+    private budgetService: BudgetService,
+    private financeService: FinanceService
+  ) {
     const now = new Date();
     this.currentMonth = now.getMonth() + 1;
     this.currentYear = now.getFullYear();
   }
 
   ngOnInit() {
+    this.loadCategories();
     this.loadPlan();
+  }
+
+  loadCategories() {
+    // Categories are now predefined in the component
+    // Users can add custom categories via the "Custom..." option
   }
 
   loadPlan() {
@@ -127,8 +137,11 @@ export class PlanningComponent implements OnInit {
 
     this.budgetService.savePlan(this.currentMonth, this.currentYear, allItems).subscribe({
       next: (response) => {
-        alert('Budget plan saved successfully!');
-        this.loadPlan();
+        // Show success message for 3 seconds
+        alert('✅ Budget plan saved successfully! Your budgets have been synced.');
+        setTimeout(() => {
+          this.loadPlan();
+        }, 3000);
       },
       error: (err) => {
         console.error('Error saving plan:', err);

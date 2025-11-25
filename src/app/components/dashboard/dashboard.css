@@ -60,3 +60,86 @@
 .unlink-btn:hover {
     background: #ffebee;
 }
+
+/* Fixed height layout for transactions and budget sections */
+@media (min-width: 1024px) {
+    .transactions-budget-grid {
+        height: calc(100vh - 520px);
+        /* Adjust based on header + stats cards height */
+        min-height: 500px;
+        max-height: 700px;
+    }
+}
+
+/* Transaction section - scrollable table only */
+.transactions-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.transactions-table-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-bottom: 16px;
+}
+
+.transactions-footer {
+    flex-shrink: 0;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 16px;
+}
+
+/* Budget section - scrollable content */
+.budget-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.budget-header {
+    flex-shrink: 0;
+    margin-bottom: 16px;
+}
+
+.budget-items-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 8px;
+}
+
+/* Custom scrollbar styling */
+.transactions-table-wrapper::-webkit-scrollbar,
+.budget-items-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.transactions-table-wrapper::-webkit-scrollbar-track,
+.budget-items-wrapper::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.transactions-table-wrapper::-webkit-scrollbar-thumb,
+.budget-items-wrapper::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.transactions-table-wrapper::-webkit-scrollbar-thumb:hover,
+.budget-items-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Make table header sticky */
+.transactions-table thead {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}

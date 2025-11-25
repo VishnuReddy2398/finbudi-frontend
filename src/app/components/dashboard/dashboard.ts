@@ -1,19 +1,22 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FinanceService, Transaction } from '../../services/finance';
 import { BudgetService } from '../../services/budget.service';
 import { AuthService } from '../../services/auth.service';
+import { DashboardService, BudgetVariance, ChartData } from '../../services/dashboard.service';
 import { PieChartComponent } from '../charts/pie-chart.component';
 import { StatsWidgetComponent } from '../gamification/stats-widget/stats-widget.component';
+import { ChallengesWidgetComponent } from '../gamification/challenges-widget/challenges-widget.component';
 import { TelegramLinkDialogComponent } from '../telegram-link-dialog/telegram-link-dialog.component';
 import { TelegramService } from '../../services/telegram.service';
+import { AnalyticsService } from '../../services/analytics.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, PieChartComponent, StatsWidgetComponent, TelegramLinkDialogComponent],
+  imports: [CommonModule, FormsModule, RouterLink, PieChartComponent, StatsWidgetComponent, ChallengesWidgetComponent, TelegramLinkDialogComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -38,14 +41,18 @@ export class DashboardComponent implements OnInit {
   telegramUsername: string | null = null;
 
   // Budget variance data
-  budgetVariances: any[] = [];
-  overBudgetItems: any[] = [];
-  underBudgetItems: any[] = [];
+  budgetVariances: BudgetVariance[] = [];
+  visibleBudgetVariances: BudgetVariance[] = []; // For UI display (Variable expenses only)
+  overBudgetItems: BudgetVariance[] = [];
+  underBudgetItems: BudgetVariance[] = [];
   budgetHealthScore: number = 100;
 
+  // Prediction Data
+  prediction: any = null;
+
   // Chart Data
-  expenseChartData: any[] = [];
-  unplannedChartData: any[] = [];
+  expenseChartData: ChartData[] = [];
+  unplannedChartData: ChartData[] = [];
 
   // Quick Edit/Delete State
   editingTransaction: Transaction | null = null;
@@ -65,8 +72,18 @@ export class DashboardComponent implements OnInit {
     private financeService: FinanceService,
     private budgetService: BudgetService,
     private authService: AuthService,
-    private telegramService: TelegramService
+    private telegramService: TelegramService,
+    private dashboardService: DashboardService,
+    private analyticsService: AnalyticsService
   ) { }
+
+  @ViewChild(ChallengesWidgetComponent) challengesWidget!: ChallengesWidgetComponent;
+
+  openChallengesModal() {
+    if (this.challengesWidget) {
+      this.challengesWidget.showModal = true;
+    }
+  }
 
   ngOnInit() {
     this.loadTransactions();
@@ -74,9 +91,17 @@ export class DashboardComponent implements OnInit {
     this.loadBudgetVariance();
     this.checkVerificationStatus();
     this.loadTelegramStatus();
+    this.loadPrediction();
 
     const now = new Date();
     this.loadBudgetPlan(now.getMonth() + 1, now.getFullYear());
+  }
+
+  loadPrediction() {
+    this.analyticsService.getPrediction().subscribe({
+      next: (data) => this.prediction = data,
+      error: (err) => console.error('Error loading prediction:', err)
+    });
   }
 
   checkVerificationStatus() {
@@ -115,51 +140,16 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-
-
-  // This method is missing in the original code, adding a placeholder for calculateTotals
-  // based on the context of the change.
   calculateTotals() {
-    // Filter transactions for the current month
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    const monthlyTransactions = this.transactions.filter(t => {
-      const tDate = new Date(t.date);
-      return tDate.getMonth() === currentMonth && tDate.getFullYear() === currentYear;
-    });
-
-    // Actual income and expense for the month
-    const actualIncome = monthlyTransactions
-      .filter(t => t.type === 'INCOME')
-      .reduce((sum, t) => sum + t.amount, 0);
-    const actualExpense = monthlyTransactions
-      .filter(t => t.type === 'EXPENSE')
-      .reduce((sum, t) => sum + t.amount, 0);
-
-    // Total Income = Planned Income + Actual Income
-    this.totalIncome = Number(this.totalPlannedIncome) + actualIncome;
-    // Total Expense reflects actual expenses for the month
-    this.totalExpense = actualExpense;
-
-    // Balance calculation: (Planned Income - Planned Expenses) - Unplanned Expenses
-    if (this.totalPlannedIncome > 0 || this.totalPlannedExpense > 0) {
-      const projectedSavings = this.totalPlannedIncome - this.totalPlannedExpense;
-      let unplannedExpenses = 0;
-      if (this.budgetVariances && this.budgetVariances.length > 0) {
-        unplannedExpenses = this.budgetVariances
-          .filter(v => v.categoryType === 'EXPENSE' && v.planned === 0)
-          .reduce((sum, v) => sum + v.actual, 0);
-      }
-      this.balance = projectedSavings - unplannedExpenses;
-    } else {
-      this.balance = this.totalIncome - this.totalExpense;
-    }
-
-    // Round values to avoid floating point artifacts
-    this.totalIncome = Math.round(this.totalIncome * 100) / 100;
-    this.totalExpense = Math.round(this.totalExpense * 100) / 100;
-    this.balance = Math.round(this.balance * 100) / 100;
+    const totals = this.dashboardService.calculateTotals(
+      this.transactions,
+      this.budgetVariances,
+      this.totalPlannedIncome,
+      this.totalPlannedExpense
+    );
+    this.totalIncome = totals.totalIncome;
+    this.totalExpense = totals.totalExpense;
+    this.balance = totals.balance;
   }
 
   loadBudgetVariance() {
@@ -167,80 +157,53 @@ export class DashboardComponent implements OnInit {
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
 
-    this.budgetService.getVarianceReport(month, year).subscribe({
-      next: (variances) => {
+    this.budgetService.getBudgets(month, year).subscribe({
+      next: (data) => {
+        // Map BudgetDTO to variance structure expected by dashboard
+        const variances: BudgetVariance[] = data.map((b: any) => ({
+          categoryName: b.categoryName,
+          categoryType: 'EXPENSE', // Budgets are usually for expenses
+          planned: b.limit,
+          actual: b.spent,
+          variance: b.remaining,
+          status: b.status === 'SAFE' ? 'UNDER_BUDGET' : (b.status === 'EXCEEDED' ? 'OVER_BUDGET' : 'ON_TRACK'),
+          fixed: b.fixed
+        }));
+
         this.budgetVariances = variances;
+
+        // Filter for "Variable" expenses (exclude fixed ones based on plan)
+        this.visibleBudgetVariances = variances.filter(v => !v.fixed);
+
         this.overBudgetItems = variances
-          .filter((v: any) => v.status === 'OVER_BUDGET')
-          .sort((a: any, b: any) => Math.abs(b.variance) - Math.abs(a.variance))
+          .filter(v => v.status === 'OVER_BUDGET')
+          .sort((a, b) => Math.abs(b.variance) - Math.abs(a.variance))
           .slice(0, 3);
         this.underBudgetItems = variances
-          .filter((v: any) => v.status === 'UNDER_BUDGET')
-          .sort((a: any, b: any) => b.variance - a.variance)
+          .filter(v => v.status === 'UNDER_BUDGET')
+          .sort((a, b) => b.variance - a.variance)
           .slice(0, 3);
-        this.calculateBudgetHealth();
-        this.prepareChartData(variances);
+
+        this.budgetHealthScore = this.dashboardService.calculateBudgetHealth(variances);
+
+        const chartData = this.dashboardService.prepareChartData(variances);
+        this.expenseChartData = chartData.expenseChartData;
+        this.unplannedChartData = chartData.unplannedChartData;
+
         this.loadBudgetPlan(month, year);
+        // Recalculate totals now that budgetVariances is populated
+        this.calculateTotals();
       },
       error: (err) => console.error('Error loading budget variance:', err)
     });
   }
 
-  prepareChartData(variances: any[]) {
-    // Filter out income categories and unplanned expenses (planned == 0)
-    // Now using categoryType from backend
-    const expenses = variances.filter((v: any) =>
-      v.categoryType === 'EXPENSE' &&
-      v.actual > 0 &&
-      v.planned > 0 // Only show planned categories as per requirement
-    );
-
-    // Sort by actual amount descending
-    expenses.sort((a: any, b: any) => b.actual - a.actual);
-
-    // Take top 5 and group others
-    const topExpenses = expenses.slice(0, 5);
-    const otherExpenses = expenses.slice(5);
-
-    // Planned Expenses Colors (Cool/Professional: Blues, Greens, Violets)
-    const plannedColors = ['#3B82F6', '#10B981', '#8B5CF6', '#06B6D4', '#6366F1', '#64748B'];
-
-    this.expenseChartData = topExpenses.map((v: any, index: number) => ({
-      label: v.categoryName,
-      value: v.actual,
-      color: plannedColors[index % plannedColors.length]
-    }));
-
-    if (otherExpenses.length > 0) {
-      const otherTotal = otherExpenses.reduce((sum: number, v: any) => sum + v.actual, 0);
-      this.expenseChartData.push({
-        label: 'Others',
-        value: otherTotal,
-        color: plannedColors[5]
-      });
-    }
-
-    // Prepare Unplanned Expenses Data (planned == 0)
-    const unplanned = variances.filter((v: any) =>
-      v.planned === 0 &&
-      v.actual > 0 &&
-      v.categoryType === 'EXPENSE' // Only include Expenses
-    );
-    unplanned.sort((a: any, b: any) => b.actual - a.actual);
-
-    // Unplanned Expenses Colors (Warm/Caution: Reds, Oranges, Ambers)
-    const unplannedColors = ['#EF4444', '#F59E0B', '#F97316', '#DC2626', '#D97706', '#B91C1C'];
-
-    this.unplannedChartData = unplanned.map((v: any, index: number) => ({
-      label: v.categoryName,
-      value: v.actual,
-      color: unplannedColors[index % unplannedColors.length]
-    }));
-  }
-
   loadBudgetPlan(month: number, year: number) {
+    console.log('=== Loading Budget Plan ===');
+    console.log('Month:', month, 'Year:', year);
     this.budgetService.getPlan(month, year).subscribe({
       next: (plan) => {
+        console.log('Plan received:', plan);
         this.totalPlannedIncome = plan.totalIncome || 0;
         this.totalPlannedExpense = plan.totalPlannedExpense || 0;
         this.calculateTotals(); // Recalculate totals with planned income
@@ -248,19 +211,6 @@ export class DashboardComponent implements OnInit {
       error: (err) => console.error('Error loading budget plan:', err)
     });
   }
-
-  calculateBudgetHealth() {
-    if (this.budgetVariances.length === 0) {
-      this.budgetHealthScore = 100;
-      return;
-    }
-
-    const overBudgetCount = this.budgetVariances.filter((v: any) => v.status === 'OVER_BUDGET').length;
-    const totalCategories = this.budgetVariances.length;
-    this.budgetHealthScore = Math.round(((totalCategories - overBudgetCount) / totalCategories) * 100);
-  }
-
-
 
   // Quick Edit/Delete Methods
   openEditModal(transaction: Transaction) {

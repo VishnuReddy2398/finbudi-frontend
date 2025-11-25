@@ -1,5 +1,16 @@
 <div class="stats-card" *ngIf="stats">
     <div class="stat-item">
+        <div class="challenges-wrapper">
+            <span class="promo-text">Win Rewards! 🎁</span>
+            <button class="challenges-btn" (click)="openChallenges.emit()">
+                Challenges
+            </button>
+        </div>
+    </div>
+
+    <div class="stat-divider"></div>
+
+    <div class="stat-item">
         <div class="stat-icon">🏆</div>
         <div class="stat-content">
             <div class="stat-value">{{ stats.totalPoints }}</div>

@@ -24,9 +24,9 @@ export class MfaSetupComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentUser = this.storageService.getUser();
-    // Check if MFA is already enabled? 
-    // We don't have that info in user object yet unless we update it on login.
-    // For now, assume false or check via an endpoint if we had one.
+    if (this.currentUser && this.currentUser.mfaEnabled) {
+      this.isMfaEnabled = true;
+    }
   }
 
   generateMfa(): void {
@@ -50,6 +50,13 @@ export class MfaSetupComponent implements OnInit {
         this.errorMessage = '';
         this.qrCodeImage = '';
         this.secret = '';
+
+        // Update local storage to reflect MFA enabled
+        const user = this.storageService.getUser();
+        if (user) {
+          user.mfaEnabled = true;
+          this.storageService.saveUser(user);
+        }
       },
       error: err => {
         this.errorMessage = err.error.message || 'Invalid code';

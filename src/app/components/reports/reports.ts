@@ -1,11 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { FinanceService, Transaction } from '../../services/finance';
+import { ExportService } from '../../services/export.service';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './reports.html',
   styleUrl: './reports.css'
 })
@@ -15,7 +17,14 @@ export class ReportsComponent {
   totalIncome = 0;
   totalExpense = 0;
 
-  constructor(private financeService: FinanceService) { }
+  // For Export
+  selectedMonth: number = new Date().getMonth() + 1;
+  selectedYear: number = new Date().getFullYear();
+
+  constructor(
+    private financeService: FinanceService,
+    private exportService: ExportService
+  ) { }
 
   generateWeeklyReport() {
     this.reportType = 'WEEKLY';
@@ -41,5 +50,27 @@ export class ReportsComponent {
     this.totalExpense = this.transactions
       .filter(t => t.type === 'EXPENSE')
       .reduce((sum, t) => sum + t.amount, 0);
+  }
+
+  downloadPdf() {
+    this.exportService.downloadPdf(this.selectedMonth, this.selectedYear).subscribe(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `report_${this.selectedMonth}_${this.selectedYear}.pdf`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    });
+  }
+
+  downloadExcel() {
+    this.exportService.downloadExcel(this.selectedMonth, this.selectedYear).subscribe(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `report_${this.selectedMonth}_${this.selectedYear}.xlsx`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    });
   }
 }
