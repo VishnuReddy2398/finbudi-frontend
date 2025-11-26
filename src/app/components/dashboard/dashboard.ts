@@ -78,6 +78,9 @@ export class DashboardComponent implements OnInit {
   showEditModal = false;
   showDeleteModal = false;
   editForm: any = {};
+  isSavingEdit = false; // Prevent double-clicks on edit save
+  isDeletingTransaction = false; // Prevent double-clicks on delete
+  isLoadingDashboard = false; // Show loading on initial load
 
   // Make Math available in template
   Math = Math;
@@ -448,7 +451,9 @@ export class DashboardComponent implements OnInit {
   }
 
   saveEdit() {
-    if (!this.editingTransaction?.id) return;
+    if (!this.editingTransaction?.id || this.isSavingEdit) return; // Prevent double-clicks
+
+    this.isSavingEdit = true;
 
     // Resolve Category Name to Object
     const name = this.editForm.categoryName;
@@ -467,10 +472,12 @@ export class DashboardComponent implements OnInit {
         this.loadTransactions();
         this.loadBudgetVariance();
         this.closeEditModal();
+        this.isSavingEdit = false;
       },
       error: (err) => {
         console.error('Error updating transaction:', err);
         alert('Failed to update transaction');
+        this.isSavingEdit = false;
       }
     });
   }
@@ -486,17 +493,21 @@ export class DashboardComponent implements OnInit {
   }
 
   confirmDelete() {
-    if (!this.deletingTransaction?.id) return;
+    if (!this.deletingTransaction?.id || this.isDeletingTransaction) return; // Prevent double-clicks
+
+    this.isDeletingTransaction = true;
 
     this.financeService.deleteTransaction(this.deletingTransaction.id).subscribe({
       next: () => {
         this.loadTransactions();
         this.loadBudgetVariance();
         this.closeDeleteModal();
+        this.isDeletingTransaction = false;
       },
       error: (err) => {
         console.error('Error deleting transaction:', err);
         alert('Failed to delete transaction');
+        this.isDeletingTransaction = false;
       }
     });
   }

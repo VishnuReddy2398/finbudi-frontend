@@ -71,18 +71,28 @@ export class DashboardService {
     }
 
     prepareChartData(variances: BudgetVariance[]): { expenseChartData: PieChartData[], unplannedChartData: PieChartData[] } {
-        // 1. Merge duplicates by categoryName
+        // Helper function to normalize category name to Title Case
+        const toTitleCase = (str: string): string => {
+            return str.toLowerCase().split(' ').map(word =>
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        };
+
+        // 1. Merge duplicates by categoryName (case-insensitive)
         const mergedMap = new Map<string, BudgetVariance>();
 
         variances.forEach(v => {
-            const existing = mergedMap.get(v.categoryName);
+            // Normalize category name to Title Case for consistent grouping
+            const normalizedName = toTitleCase(v.categoryName);
+            const existing = mergedMap.get(normalizedName);
+
             if (existing) {
                 existing.planned += v.planned;
                 existing.actual += v.actual;
                 existing.variance = existing.planned - existing.actual; // Recalculate variance
             } else {
-                // Clone to avoid mutating original array if needed
-                mergedMap.set(v.categoryName, { ...v });
+                // Clone and use normalized name
+                mergedMap.set(normalizedName, { ...v, categoryName: normalizedName });
             }
         });
 
@@ -96,7 +106,7 @@ export class DashboardService {
         const expenseChartData = mergedVariances
             .filter(v => v.categoryType === 'EXPENSE' && v.actual > 0)
             .map((v, index) => ({
-                label: v.categoryName,
+                label: v.categoryName, // Now normalized to Title Case
                 value: v.actual,
                 color: plannedColors[index % plannedColors.length]
             }));
@@ -106,7 +116,7 @@ export class DashboardService {
         const unplannedChartData = mergedVariances
             .filter(v => v.categoryType === 'EXPENSE' && v.variance < 0)
             .map((v, index) => ({
-                label: v.categoryName,
+                label: v.categoryName, // Now normalized to Title Case
                 value: Math.abs(v.variance), // Show overspending amount
                 color: unplannedColors[index % unplannedColors.length]
             }));

@@ -24,6 +24,8 @@ export class PlanningComponent implements OnInit {
   currentMonth: number;
   currentYear: number;
   isEditing = false;
+  isSaving = false; // Prevent double-clicks
+  isLoading = false; // Show loading spinner
 
   incomeItems: PlanItem[] = [];
   fixedExpenseItems: PlanItem[] = [];
@@ -69,6 +71,7 @@ export class PlanningComponent implements OnInit {
   }
 
   loadPlan() {
+    this.isLoading = true;
     this.budgetService.getPlan(this.currentMonth, this.currentYear).subscribe({
       next: (plan) => {
         if (plan.items && plan.items.length > 0) {
@@ -77,8 +80,12 @@ export class PlanningComponent implements OnInit {
           this.variableExpenseItems = plan.items.filter((item: PlanItem) => item.type === 'EXPENSE' && !item.fixed);
         }
         this.calculateTotals();
+        this.isLoading = false;
       },
-      error: (err) => console.error('Error loading plan:', err)
+      error: (err) => {
+        console.error('Error loading plan:', err);
+        this.isLoading = false;
+      }
     });
   }
 
@@ -142,6 +149,9 @@ export class PlanningComponent implements OnInit {
   }
 
   savePlan() {
+    if (this.isSaving) return; // Prevent double-clicks
+
+    this.isSaving = true;
     const allItems = [...this.incomeItems, ...this.fixedExpenseItems, ...this.variableExpenseItems];
 
     this.budgetService.savePlan(this.currentMonth, this.currentYear, allItems).subscribe({
@@ -149,6 +159,7 @@ export class PlanningComponent implements OnInit {
         // Show success message for 3 seconds
         alert('✅ Budget plan saved successfully! Your budgets have been synced.');
         this.isEditing = false; // Exit edit mode
+        this.isSaving = false;
         setTimeout(() => {
           this.loadPlan();
         }, 1000);
@@ -156,6 +167,7 @@ export class PlanningComponent implements OnInit {
       error: (err) => {
         console.error('Error saving plan:', err);
         alert('Failed to save budget plan');
+        this.isSaving = false;
       }
     });
   }
