@@ -14,6 +14,7 @@ import { TelegramService } from '../../services/telegram.service';
 import { AnalyticsService } from '../../services/analytics.service';
 import { PlanningService, MonthlyPlan } from '../../services/planning.service'; // Added PlanningService and MonthlyPlan
 import { CarryForwardDialogComponent } from '../carry-forward-dialog/carry-forward-dialog.component'; // Added CarryForwardDialogComponent
+import { GamificationService } from '../../services/gamification.service'; // Added GamificationService
 
 // Define local interface for Chart.js data
 interface BarChartData {
@@ -89,6 +90,10 @@ export class DashboardComponent implements OnInit {
   showCarryForwardDialog = false;
   previousPlan: MonthlyPlan | null = null;
 
+  // Gamification
+  streak: number = 0;
+  points: number = 0;
+
   constructor(
     private financeService: FinanceService,
     private budgetService: BudgetService,
@@ -97,6 +102,7 @@ export class DashboardComponent implements OnInit {
     private dashboardService: DashboardService,
     private analyticsService: AnalyticsService,
     private planningService: PlanningService,
+    private gamificationService: GamificationService, // Injected
     private router: Router
   ) { }
 
@@ -119,6 +125,7 @@ export class DashboardComponent implements OnInit {
 
     const now = new Date();
     this.loadBudgetPlan(now.getMonth() + 1, now.getFullYear());
+    this.loadGamificationStats();
   }
 
   checkPlanningStatus() {
@@ -221,6 +228,16 @@ export class DashboardComponent implements OnInit {
     this.financeService.getCategories().subscribe({
       next: (data) => this.categories = data,
       error: (err) => console.error('Error loading categories:', err)
+    });
+  }
+
+  loadGamificationStats() {
+    this.gamificationService.getStats().subscribe({
+      next: (stats) => {
+        this.streak = stats.currentStreak;
+        this.points = stats.totalPoints;
+      },
+      error: (err) => console.error('Error loading stats:', err)
     });
   }
 
