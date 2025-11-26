@@ -11,7 +11,7 @@ export interface BudgetVariance {
     fixed?: boolean;
 }
 
-export interface ChartData {
+export interface PieChartData {
     label: string;
     value: number;
     color: string;
@@ -70,53 +70,46 @@ export class DashboardService {
         };
     }
 
-    prepareChartData(variances: BudgetVariance[]): { expenseChartData: ChartData[], unplannedChartData: ChartData[] } {
-        // Filter out income categories and unplanned expenses (planned == 0)
-        const expenses = variances.filter(v =>
-            v.categoryType === 'EXPENSE' &&
-            v.actual > 0 &&
-            v.planned > 0
-        );
+    prepareChartData(variances: BudgetVariance[]): { expenseChartData: PieChartData[], unplannedChartData: PieChartData[] } {
+        // 1. Merge duplicates by categoryName
+        const mergedMap = new Map<string, BudgetVariance>();
 
-        // Sort by actual amount descending
-        expenses.sort((a, b) => b.actual - a.actual);
+        variances.forEach(v => {
+            const existing = mergedMap.get(v.categoryName);
+            if (existing) {
+                existing.planned += v.planned;
+                existing.actual += v.actual;
+                existing.variance = existing.planned - existing.actual; // Recalculate variance
+            } else {
+                // Clone to avoid mutating original array if needed
+                mergedMap.set(v.categoryName, { ...v });
+            }
+        });
 
-        // Take top 5 and group others
-        const topExpenses = expenses.slice(0, 5);
-        const otherExpenses = expenses.slice(5);
+        const mergedVariances = Array.from(mergedMap.values());
 
         const plannedColors = ['#3B82F6', '#10B981', '#8B5CF6', '#06B6D4', '#6366F1', '#64748B'];
-
-        const expenseChartData = topExpenses.map((v, index) => ({
-            label: v.categoryName,
-            value: v.actual,
-            color: plannedColors[index % plannedColors.length]
-        }));
-
-        if (otherExpenses.length > 0) {
-            const otherTotal = otherExpenses.reduce((sum, v) => sum + v.actual, 0);
-            expenseChartData.push({
-                label: 'Others',
-                value: otherTotal,
-                color: plannedColors[5]
-            });
-        }
-
-        // Prepare Unplanned Expenses Data (planned == 0)
-        const unplanned = variances.filter(v =>
-            v.planned === 0 &&
-            v.actual > 0 &&
-            v.categoryType === 'EXPENSE'
-        );
-        unplanned.sort((a, b) => b.actual - a.actual);
-
         const unplannedColors = ['#EF4444', '#F59E0B', '#F97316', '#DC2626', '#D97706', '#B91C1C'];
 
-        const unplannedChartData = unplanned.map((v, index) => ({
-            label: v.categoryName,
-            value: v.actual,
-            color: unplannedColors[index % unplannedColors.length]
-        }));
+        // Chart 1: Planned Category Expenses (actual spending per category)
+        // User requested: filter(v => v.categoryType === 'EXPENSE' && v.actual > 0)
+        const expenseChartData = mergedVariances
+            .filter(v => v.categoryType === 'EXPENSE' && v.actual > 0)
+            .map((v, index) => ({
+                label: v.categoryName,
+                value: v.actual,
+                color: plannedColors[index % plannedColors.length]
+            }));
+
+        // Chart 2: Unplanned Expenses (spending beyond budget per category)
+        // User requested: filter(v => v.categoryType === 'EXPENSE' && v.variance < 0)
+        const unplannedChartData = mergedVariances
+            .filter(v => v.categoryType === 'EXPENSE' && v.variance < 0)
+            .map((v, index) => ({
+                label: v.categoryName,
+                value: Math.abs(v.variance), // Show overspending amount
+                color: unplannedColors[index % unplannedColors.length]
+            }));
 
         return { expenseChartData, unplannedChartData };
     }

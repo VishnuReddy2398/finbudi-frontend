@@ -20,6 +20,7 @@ export const routes: Routes = [
     { path: 'signup', component: SignupComponent },
     { path: 'forgot-password', component: ForgotPasswordComponent },
     { path: 'reset-password', component: ResetPasswordComponent },
+    { path: 'planning-wizard', loadComponent: () => import('./components/planning-wizard/planning-wizard.component').then(m => m.PlanningWizardComponent), canActivate: [authGuard] },
     { path: 'verify-email', component: EmailVerificationComponent },
     { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
     { path: 'add-transaction', component: TransactionFormComponent, canActivate: [authGuard] },

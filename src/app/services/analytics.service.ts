@@ -28,4 +28,28 @@ export class AnalyticsService {
     getPrediction(): Observable<any> {
         return this.http.get<any>(`${this.apiUrl}/prediction`);
     }
+
+    getSixMonthTrend(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/trend`);
+    }
+
+    getDailySpendingTrend(): Observable<any> {
+        const now = new Date();
+        const params = new HttpParams()
+            .set('month', (now.getMonth() + 1).toString())
+            .set('year', now.getFullYear().toString());
+
+        return new Observable(observer => {
+            this.http.get<any[]>(`${this.apiUrl}/daily-spend`, { params }).subscribe({
+                next: (data) => {
+                    observer.next({
+                        labels: data.map(d => d.date),
+                        data: data.map(d => d.amount)
+                    });
+                    observer.complete();
+                },
+                error: (err) => observer.error(err)
+            });
+        });
+    }
 }

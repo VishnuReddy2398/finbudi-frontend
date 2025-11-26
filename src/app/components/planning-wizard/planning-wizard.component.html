@@ -1,0 +1,268 @@
+<div class="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="flex justify-between mb-2">
+                <span class="text-xs font-semibold text-slate-600 uppercase">Step {{currentStep}} of
+                    {{totalSteps}}</span>
+                <span class="text-xs font-semibold text-slate-600">{{ (currentStep / totalSteps * 100) | number:'1.0-0'
+                    }}% Completed</span>
+            </div>
+            <div class="w-full bg-slate-200 rounded-full h-2.5">
+                <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
+                    [style.width.%]="(currentStep / totalSteps * 100)"></div>
+            </div>
+        </div>
+
+        <!-- Step 1: Income -->
+        <div *ngIf="currentStep === 1" class="bg-white rounded-2xl shadow-lg p-8 animate-fade-in">
+            <div class="text-center mb-8">
+                <span class="text-4xl mb-4 block">💰</span>
+                <h2 class="text-3xl font-bold text-slate-800">What's your monthly income?</h2>
+                <p class="text-slate-500 mt-2">Let's start with how much money is coming in.</p>
+            </div>
+
+            <div class="max-w-xs mx-auto">
+                <label class="block text-sm font-medium text-slate-700 mb-2">Total Monthly Income</label>
+                <div class="relative rounded-md shadow-sm">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-slate-500 sm:text-lg">₹</span>
+                    </div>
+                    <input type="number" [(ngModel)]="income"
+                        class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-8 pr-12 sm:text-lg border-slate-300 rounded-md py-3"
+                        placeholder="0.00">
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-center">
+                <button (click)="nextStep()" [disabled]="!income || income <= 0"
+                    class="bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    Next: Add Fixed Expenses →
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Debt Obligations -->
+        <div *ngIf="currentStep === 2" class="bg-white rounded-2xl shadow-lg p-8 animate-fade-in">
+            <div class="text-center mb-6">
+                <span class="text-4xl mb-4 block">🔒</span>
+                <h2 class="text-2xl font-bold text-slate-800">Do you have any EMIs/Loans?</h2>
+                <p class="text-slate-500">These are your fixed debt commitments.</p>
+            </div>
+
+            <div class="space-y-4 mb-8 max-h-96 overflow-y-auto pr-2">
+                <div *ngFor="let item of debtItems"
+                    class="flex items-center justify-between p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <span class="text-2xl">💳</span>
+                        <span class="font-medium text-slate-700">{{item.categoryName}}</span>
+                    </label>
+                    <div class="relative w-32">
+                        <span class="absolute left-3 top-2 text-slate-400">₹</span>
+                        <input type="number" [(ngModel)]="item.plannedAmount"
+                            class="w-full pl-6 pr-2 py-2 border border-slate-200 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-right"
+                            placeholder="0">
+                    </div>
+                </div>
+
+                <!-- Custom Debt -->
+                <div class="flex items-center gap-2 p-4 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                    <input type="text" [(ngModel)]="customDebtName" placeholder="Custom Loan Name"
+                        class="flex-1 bg-transparent border-none focus:ring-0 placeholder-slate-400">
+                    <input type="number" [(ngModel)]="customDebtAmount" placeholder="Amount"
+                        class="w-24 bg-transparent border-none focus:ring-0 text-right placeholder-slate-400">
+                    <button (click)="addCustomDebt()" [disabled]="!customDebtName || !customDebtAmount"
+                        class="text-blue-600 font-bold hover:text-blue-700">+</button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center border-t pt-6">
+                <div class="text-left">
+                    <p class="text-xs text-slate-500 uppercase font-bold">Total Debt</p>
+                    <p class="text-xl font-bold text-slate-800">₹{{totalDebt | number}}</p>
+                </div>
+                <div class="flex gap-3">
+                    <button (click)="prevStep()"
+                        class="px-6 py-2 text-slate-600 font-semibold hover:bg-slate-100 rounded-full">Back</button>
+                    <button (click)="nextStep()"
+                        class="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700">Next:
+                        Essential Bills →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Essential Liabilities -->
+        <div *ngIf="currentStep === 3" class="bg-white rounded-2xl shadow-lg p-8 animate-fade-in">
+            <div class="text-center mb-6">
+                <span class="text-4xl mb-4 block">🏠</span>
+                <h2 class="text-2xl font-bold text-slate-800">Essential Monthly Expenses</h2>
+                <p class="text-slate-500">Rent, bills, insurance, and savings.</p>
+            </div>
+
+            <div class="space-y-4 mb-8 max-h-96 overflow-y-auto pr-2">
+                <div *ngFor="let item of essentialItems"
+                    class="flex items-center justify-between p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <span class="text-2xl">🧾</span>
+                        <span class="font-medium text-slate-700">{{item.categoryName}}</span>
+                    </label>
+                    <div class="relative w-32">
+                        <span class="absolute left-3 top-2 text-slate-400">₹</span>
+                        <input type="number" [(ngModel)]="item.plannedAmount"
+                            class="w-full pl-6 pr-2 py-2 border border-slate-200 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-right"
+                            placeholder="0">
+                    </div>
+                </div>
+
+                <!-- Custom Essential -->
+                <div class="flex items-center gap-2 p-4 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                    <input type="text" [(ngModel)]="customEssentialName" placeholder="Custom Expense Name"
+                        class="flex-1 bg-transparent border-none focus:ring-0 placeholder-slate-400">
+                    <input type="number" [(ngModel)]="customEssentialAmount" placeholder="Amount"
+                        class="w-24 bg-transparent border-none focus:ring-0 text-right placeholder-slate-400">
+                    <button (click)="addCustomEssential()" [disabled]="!customEssentialName || !customEssentialAmount"
+                        class="text-blue-600 font-bold hover:text-blue-700">+</button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center border-t pt-6">
+                <div class="text-left">
+                    <p class="text-xs text-slate-500 uppercase font-bold">Total Essentials</p>
+                    <p class="text-xl font-bold text-slate-800">₹{{totalEssential | number}}</p>
+                </div>
+                <div class="flex gap-3">
+                    <button (click)="prevStep()"
+                        class="px-6 py-2 text-slate-600 font-semibold hover:bg-slate-100 rounded-full">Back</button>
+                    <button (click)="nextStep()"
+                        class="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700">Next:
+                        Variable Budget →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Discretionary Budget -->
+        <div *ngIf="currentStep === 4" class="bg-white rounded-2xl shadow-lg p-8 animate-fade-in">
+            <div class="text-center mb-6">
+                <span class="text-4xl mb-4 block">💸</span>
+                <h2 class="text-2xl font-bold text-slate-800">Set Spending Limits</h2>
+                <p class="text-slate-500">This is the money you control daily.</p>
+            </div>
+
+            <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-6 flex justify-between items-center">
+                <div>
+                    <p class="text-sm text-emerald-700 font-semibold">Available for Spending</p>
+                    <p class="text-2xl font-bold text-emerald-800">₹{{availableForDiscretionary | number}}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-emerald-700 font-semibold">Remaining to Allocate</p>
+                    <p class="text-xl font-bold"
+                        [ngClass]="{'text-emerald-600': remainingBudget >= 0, 'text-red-600': remainingBudget < 0}">
+                        ₹{{remainingBudget | number}}</p>
+                </div>
+            </div>
+
+            <div class="space-y-4 mb-8 max-h-96 overflow-y-auto pr-2">
+                <div *ngFor="let item of discretionaryItems"
+                    class="flex items-center justify-between p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <span class="text-2xl">🛍️</span>
+                        <span class="font-medium text-slate-700">{{item.categoryName}}</span>
+                    </label>
+                    <div class="relative w-32">
+                        <span class="absolute left-3 top-2 text-slate-400">₹</span>
+                        <input type="number" [(ngModel)]="item.plannedAmount"
+                            class="w-full pl-6 pr-2 py-2 border border-slate-200 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-right"
+                            placeholder="0">
+                    </div>
+                </div>
+
+                <!-- Custom Discretionary -->
+                <div class="flex items-center gap-2 p-4 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                    <input type="text" [(ngModel)]="customDiscretionaryName" placeholder="Custom Category"
+                        class="flex-1 bg-transparent border-none focus:ring-0 placeholder-slate-400">
+                    <input type="number" [(ngModel)]="customDiscretionaryAmount" placeholder="Amount"
+                        class="w-24 bg-transparent border-none focus:ring-0 text-right placeholder-slate-400">
+                    <button (click)="addCustomDiscretionary()"
+                        [disabled]="!customDiscretionaryName || !customDiscretionaryAmount"
+                        class="text-blue-600 font-bold hover:text-blue-700">+</button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center border-t pt-6">
+                <div class="text-left">
+                    <p class="text-xs text-slate-500 uppercase font-bold">Total Budgeted</p>
+                    <p class="text-xl font-bold text-slate-800">₹{{totalDiscretionary | number}}</p>
+                </div>
+                <div class="flex gap-3">
+                    <button (click)="prevStep()"
+                        class="px-6 py-2 text-slate-600 font-semibold hover:bg-slate-100 rounded-full">Back</button>
+                    <button (click)="nextStep()"
+                        class="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700">Next:
+                        Review Plan →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Summary -->
+        <div *ngIf="currentStep === 5" class="bg-white rounded-2xl shadow-lg p-8 animate-fade-in">
+            <div class="text-center mb-8">
+                <span class="text-4xl mb-4 block">✅</span>
+                <h2 class="text-3xl font-bold text-slate-800">Your Monthly Plan</h2>
+                <p class="text-slate-500 mt-2">Here's how your money is allocated.</p>
+            </div>
+
+            <div class="space-y-6 mb-8">
+                <!-- Income -->
+                <div class="flex justify-between items-center p-4 bg-slate-50 rounded-xl">
+                    <span class="font-semibold text-slate-700">💰 Monthly Income</span>
+                    <span class="font-bold text-slate-800 text-lg">₹{{income | number}}</span>
+                </div>
+
+                <!-- Fixed Breakdown -->
+                <div class="border border-slate-100 rounded-xl p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-slate-700">🔒 Fixed Obligations</span>
+                        <span class="font-bold text-rose-600">₹{{totalFixed | number}}</span>
+                    </div>
+                    <div class="text-sm text-slate-500 flex justify-between pl-4 mb-1">
+                        <span>Debt Payments</span>
+                        <span>₹{{totalDebt | number}}</span>
+                    </div>
+                    <div class="text-sm text-slate-500 flex justify-between pl-4">
+                        <span>Essential Bills</span>
+                        <span>₹{{totalEssential | number}}</span>
+                    </div>
+                </div>
+
+                <!-- Discretionary Breakdown -->
+                <div class="border border-slate-100 rounded-xl p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-slate-700">💸 Discretionary Budget</span>
+                        <span class="font-bold text-emerald-600">₹{{totalDiscretionary | number}}</span>
+                    </div>
+                    <div class="text-sm text-slate-500 flex justify-between pl-4 mb-1">
+                        <span>Daily Budget</span>
+                        <span>₹{{dailyBudget | number:'1.0-0'}}/day</span>
+                    </div>
+                    <div class="text-sm text-slate-500 flex justify-between pl-4">
+                        <span>Unallocated</span>
+                        <span
+                            [ngClass]="{'text-emerald-600': remainingBudget >= 0, 'text-red-600': remainingBudget < 0}">₹{{remainingBudget
+                            | number}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-3 justify-center">
+                <button (click)="prevStep()"
+                    class="px-8 py-3 text-slate-600 font-semibold hover:bg-slate-100 rounded-full">Back</button>
+                <button (click)="savePlan()"
+                    class="bg-emerald-600 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-700 shadow-lg transform hover:scale-105 transition-all">
+                    Save Plan & Start 🚀
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>

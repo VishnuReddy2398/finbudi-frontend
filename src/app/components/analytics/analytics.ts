@@ -1,79 +1,42 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { AnalyticsService } from '../../services/analytics.service';
+import { InsightsService, FinancialInsightsDTO } from '../../services/insights.service';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
-import { AnalyticsService } from '../../services/analytics.service';
 
 @Component({
   selector: 'app-analytics',
   standalone: true,
-  imports: [CommonModule, FormsModule, BaseChartDirective],
+  imports: [CommonModule, BaseChartDirective],
   templateUrl: './analytics.html',
   styleUrls: ['./analytics.css']
 })
 export class AnalyticsComponent implements OnInit {
-  currentMonth: number = new Date().getMonth() + 1;
-  currentYear: number = new Date().getFullYear();
+  // New Insights Data
+  insights: FinancialInsightsDTO | null = null;
+  loading = true;
 
-  // Daily Spend Chart (Line)
-  public lineChartData: ChartConfiguration['data'] = {
-    datasets: [
-      {
-        data: [],
-        label: 'Daily Spend',
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-        borderColor: 'rgba(59, 130, 246, 1)',
-        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(59, 130, 246, 1)',
-        fill: 'origin',
-      }
-    ],
-    labels: []
-  };
-
-  public lineChartOptions: ChartConfiguration['options'] = {
-    elements: {
-      line: {
-        tension: 0.4
-      }
-    },
+  // Charts
+  lineChartData: ChartConfiguration['data'] = { datasets: [], labels: [] };
+  lineChartOptions: ChartConfiguration['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
     scales: {
       y: {
         beginAtZero: true,
-        grid: {
-          color: 'rgba(0,0,0,0.05)'
-        }
-      },
-      x: {
-        grid: {
-          display: false
-        }
+        min: 0
       }
-    },
-    plugins: {
-      legend: { display: false }
     }
   };
+  lineChartType: ChartType = 'line';
 
-  public lineChartType: ChartType = 'line';
-
-  // Category Split Chart (Doughnut)
-  public doughnutChartData: ChartData<'doughnut'> = {
+  doughnutChartData: ChartData<'doughnut'> = {
     labels: [],
-    datasets: [
-      {
-        data: [],
-        backgroundColor: [
-          '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6366F1'
-        ]
-      }
-    ]
+    datasets: [{ data: [], backgroundColor: [] }]
   };
-
-  public doughnutChartType: ChartType = 'doughnut';
+  doughnutChartType: ChartType = 'doughnut';
   public doughnutChartOptions: ChartConfiguration['options'] = {
     responsive: true,
     plugins: {
@@ -83,32 +46,66 @@ export class AnalyticsComponent implements OnInit {
     }
   };
 
-  // Top Categories List
-  topCategories: any[] = [];
+  constructor(
+    private analyticsService: AnalyticsService,
+    private insightsService: InsightsService
+  ) { }
 
-  constructor(private analyticsService: AnalyticsService) { }
-
-  ngOnInit(): void {
-    this.loadData();
+  ngOnInit() {
+    this.loadInsights();
+    this.loadSpendingTrend();
   }
 
-  loadData() {
-    // Load Daily Spend
-    this.analyticsService.getDailySpend(this.currentMonth, this.currentYear).subscribe(data => {
-      this.lineChartData.labels = data.map(d => d.date);
-      this.lineChartData.datasets[0].data = data.map(d => d.amount);
-
-      // Force chart update if needed, but binding should handle it
-      this.lineChartData = { ...this.lineChartData };
+  loadInsights() {
+    const now = new Date();
+    this.insightsService.getInsights(now.getMonth() + 1, now.getFullYear()).subscribe({
+      next: (data) => {
+        this.insights = data;
+        this.loading = false;
+        this.updateDoughnutChart();
+      },
+      error: (err) => {
+        console.error('Error loading insights:', err);
+        this.loading = false;
+      }
     });
+  }
 
-    // Load Category Split
-    this.analyticsService.getCategorySplit(this.currentMonth, this.currentYear).subscribe(data => {
-      this.doughnutChartData.labels = data.map(d => d.categoryName);
-      this.doughnutChartData.datasets[0].data = data.map(d => d.amount);
-      this.doughnutChartData = { ...this.doughnutChartData };
+  updateDoughnutChart() {
+    if (!this.insights) return;
 
-      this.topCategories = data.slice(0, 5); // Top 5
+    // Grouped Breakdown for Chart
+    const fixed = this.insights.fixedObligations;
+    const discretionary = this.insights.discretionarySpent;
+    const savings = this.insights.monthlyIncome - fixed - discretionary;
+
+    this.doughnutChartData = {
+      labels: ['Fixed Obligations', 'Discretionary Spending', 'Available/Savings'],
+      datasets: [{
+        data: [fixed, discretionary, savings > 0 ? savings : 0],
+        backgroundColor: ['#e11d48', '#10b981', '#3b82f6'],
+        hoverBackgroundColor: ['#be123c', '#059669', '#2563eb'],
+        borderWidth: 0
+      }]
+    };
+  }
+
+  loadSpendingTrend() {
+    this.analyticsService.getDailySpendingTrend().subscribe({
+      next: (data) => {
+        this.lineChartData = {
+          labels: data.labels,
+          datasets: [{
+            data: data.data,
+            label: 'Daily Spending',
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        };
+      },
+      error: (err) => console.error('Error loading trend:', err)
     });
   }
 }

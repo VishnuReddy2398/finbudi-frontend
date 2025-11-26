@@ -1,378 +1,294 @@
-<div class="p-6 max-w-6xl mx-auto animate-fade-in">
-    <!-- Header -->
-    <!-- Header -->
-    <div class="mb-4 flex justify-between items-end">
+<div class="p-6 max-w-4xl mx-auto space-y-8 animate-fade-in">
+
+    <div class="flex justify-between items-center">
         <div>
-            <h1 class="text-2xl font-bold text-neutral-text-primary">Monthly Budget</h1>
-            <p class="text-xs text-neutral-text-secondary mt-0.5">{{ getMonthName() }} {{ currentYear }}</p>
+            <h1 class="text-3xl font-bold text-slate-800">Monthly Planning</h1>
+            <p class="text-slate-500">Plan your budget for {{ getMonthName() }} {{ currentYear }}</p>
         </div>
-        <div class="flex gap-2">
+        <div class="text-right">
+            <p class="text-sm text-slate-400">Available for Goals</p>
+            <p class="text-2xl font-bold" [ngClass]="availableForGoals >= 0 ? 'text-emerald-600' : 'text-rose-600'">
+                ₹{{ availableForGoals | number }}
+            </p>
+        </div>
+    </div>
+
+    <!-- READ ONLY VIEW -->
+    <div *ngIf="!isEditing" class="animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-3xl mx-auto">
+
+            <div class="text-center mb-8 border-b border-slate-100 pb-6">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">
+                    Monthly Budget Plan
+                </h2>
+                <p class="text-slate-500">Overview for {{ getMonthName() }} {{ currentYear }}</p>
+            </div>
+
+            <div class="space-y-8">
+                <!-- Income -->
+                <div class="flex justify-between items-center p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">💰</span>
+                        <span class="font-bold text-slate-700">Total Income</span>
+                    </div>
+                    <span class="text-xl font-bold text-emerald-700">₹{{ totalIncome | number }}</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Fixed -->
+                    <div>
+                        <h3
+                            class="font-bold text-xs uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-rose-500"></span> Fixed Obligations
+                        </h3>
+                        <div class="space-y-3">
+                            <div *ngFor="let item of fixedExpenseItems"
+                                class="flex justify-between text-sm border-b border-slate-50 pb-2 last:border-0">
+                                <span class="text-slate-600">{{ item.categoryName }}</span>
+                                <span class="font-medium text-slate-800">₹{{ item.plannedAmount | number }}</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center mt-4 pt-3 border-t border-slate-100">
+                            <span class="font-bold text-slate-700">Total Fixed</span>
+                            <span class="font-bold text-rose-600">₹{{ totalFixedExpense | number }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Variable -->
+                    <div>
+                        <h3
+                            class="font-bold text-xs uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-blue-500"></span> Discretionary
+                        </h3>
+                        <div class="space-y-3">
+                            <div *ngFor="let item of variableExpenseItems"
+                                class="flex justify-between text-sm border-b border-slate-50 pb-2 last:border-0">
+                                <span class="text-slate-600">{{ item.categoryName }}</span>
+                                <span class="font-medium text-slate-800">₹{{ item.plannedAmount | number }}</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center mt-4 pt-3 border-t border-slate-100">
+                            <span class="font-bold text-slate-700">Total Discretionary</span>
+                            <span class="font-bold text-blue-600">₹{{ totalVariableExpense | number }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 mt-6 text-center">
+                    <p class="text-sm text-slate-500 mb-1">Available for Goals</p>
+                    <div class="text-3xl font-bold"
+                        [ngClass]="availableForGoals >= 0 ? 'text-emerald-600' : 'text-rose-600'">
+                        ₹{{ availableForGoals | number }}
+                    </div>
+                </div>
+
+                <div class="mt-8 text-center">
+                    <button (click)="toggleEdit()"
+                        class="bg-slate-800 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-900 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2 mx-auto">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                        Edit Plan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT MODE (Original Form) -->
+    <div *ngIf="isEditing" class="space-y-8 animate-fade-in">
+
+        <!-- 1. Income Section -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <span class="text-emerald-500">💰</span> Income
+            </h2>
+
+            <div class="space-y-4">
+                <div *ngFor="let item of incomeItems; let i = index"
+                    class="flex justify-between items-center bg-slate-50 p-3 rounded-lg">
+                    <span class="font-medium text-slate-700">{{ item.categoryName }}</span>
+                    <div class="flex items-center gap-4">
+                        <span class="font-bold text-emerald-600">+ ₹{{ item.plannedAmount | number }}</span>
+                        <button (click)="removeItem(incomeItems, i)" class="text-slate-400 hover:text-rose-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 items-end bg-slate-50 p-4 rounded-xl border border-dashed border-slate-300">
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Source</label>
+                        <input [(ngModel)]="newIncome.categoryName" type="text" placeholder="e.g. Salary, Freelance"
+                            class="w-full p-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div class="w-32">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Amount</label>
+                        <input [(ngModel)]="newIncome.plannedAmount" type="number" placeholder="0"
+                            class="w-full p-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+                    </div>
+                    <button (click)="addIncome()" [disabled]="!newIncome.categoryName || !newIncome.plannedAmount"
+                        class="bg-emerald-600 text-white p-2 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="flex justify-end pt-2 border-t border-slate-100">
+                    <p class="text-sm text-slate-500">Total Income: <span class="font-bold text-slate-800">₹{{
+                            totalIncome |
+                            number }}</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Fixed Obligations (Debt + Essentials) -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <span class="text-rose-500">🔒</span> Fixed Obligations
+            </h2>
+            <p class="text-sm text-slate-500 mb-4">Recurring payments like Rent, EMIs, and Bills.</p>
+
+            <div class="space-y-4">
+                <div *ngFor="let item of fixedExpenseItems; let i = index"
+                    class="flex justify-between items-center bg-slate-50 p-3 rounded-lg">
+                    <span class="font-medium text-slate-700">{{ item.categoryName }}</span>
+                    <div class="flex items-center gap-4">
+                        <span class="font-bold text-rose-600">- ₹{{ item.plannedAmount | number }}</span>
+                        <button (click)="removeItem(fixedExpenseItems, i)" class="text-slate-400 hover:text-rose-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 items-end bg-slate-50 p-4 rounded-xl border border-dashed border-slate-300">
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label>
+                        <select [(ngModel)]="newFixedExpense.categoryName"
+                            class="w-full p-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white">
+                            <option value="" disabled selected>Select Category</option>
+                            <optgroup label="Debt Obligations">
+                                <option *ngFor="let cat of debtCategories" [value]="cat.name">{{ cat.icon }} {{ cat.name
+                                    }}
+                                </option>
+                            </optgroup>
+                            <optgroup label="Essential Liabilities">
+                                <option *ngFor="let cat of essentialCategories" [value]="cat.name">{{ cat.icon }} {{
+                                    cat.name }}</option>
+                            </optgroup>
+                            <option value="custom">➕ Custom Category...</option>
+                        </select>
+                    </div>
+
+                    <div *ngIf="newFixedExpense.categoryName === 'custom'" class="flex-1 animate-fade-in">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Custom Name</label>
+                        <input [(ngModel)]="customFixedCategory" type="text" placeholder="e.g. Gym Membership"
+                            class="w-full p-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div class="w-32">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Amount</label>
+                        <input [(ngModel)]="newFixedExpense.plannedAmount" type="number" placeholder="0"
+                            class="w-full p-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+                    </div>
+                    <button (click)="addFixedExpense()"
+                        [disabled]="!newFixedExpense.categoryName || !newFixedExpense.plannedAmount"
+                        class="bg-rose-600 text-white p-2 rounded-lg hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="flex justify-end pt-2 border-t border-slate-100">
+                    <p class="text-sm text-slate-500">Total Fixed: <span class="font-bold text-rose-600">₹{{
+                            totalFixedExpense | number }}</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Discretionary Spending -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <span class="text-blue-500">🎮</span> Discretionary Spending
+            </h2>
+            <p class="text-sm text-slate-500 mb-4">Flexible expenses for lifestyle and wants.</p>
+
+            <div class="space-y-4">
+                <div *ngFor="let item of variableExpenseItems; let i = index"
+                    class="flex justify-between items-center bg-slate-50 p-3 rounded-lg">
+                    <span class="font-medium text-slate-700">{{ item.categoryName }}</span>
+                    <div class="flex items-center gap-4">
+                        <span class="font-bold text-blue-600">- ₹{{ item.plannedAmount | number }}</span>
+                        <button (click)="removeItem(variableExpenseItems, i)"
+                            class="text-slate-400 hover:text-rose-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 items-end bg-slate-50 p-4 rounded-xl border border-dashed border-slate-300">
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label>
+                        <select [(ngModel)]="newVariableExpense.categoryName"
+                            class="w-full p-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white">
+                            <option value="" disabled selected>Select Category</option>
+                            <option *ngFor="let cat of discretionaryCategories" [value]="cat.name">{{ cat.icon }} {{
+                                cat.name }}</option>
+                            <option value="custom">➕ Custom Category...</option>
+                        </select>
+                    </div>
+
+                    <div *ngIf="newVariableExpense.categoryName === 'custom'" class="flex-1 animate-fade-in">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Custom Name</label>
+                        <input [(ngModel)]="customVariableCategory" type="text" placeholder="e.g. Hobbies"
+                            class="w-full p-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div class="w-32">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Amount</label>
+                        <input [(ngModel)]="newVariableExpense.plannedAmount" type="number" placeholder="0"
+                            class="w-full p-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+                    </div>
+                    <button (click)="addVariableExpense()"
+                        [disabled]="!newVariableExpense.categoryName || !newVariableExpense.plannedAmount"
+                        class="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="flex justify-end pt-2 border-t border-slate-100">
+                    <p class="text-sm text-slate-500">Total Discretionary: <span class="font-bold text-blue-600">₹{{
+                            totalVariableExpense | number }}</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="flex justify-end pt-6 gap-4">
+            <button (click)="toggleEdit()"
+                class="px-6 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors">
+                Cancel
+            </button>
             <button (click)="savePlan()"
-                class="bg-brand-primary hover:bg-brand-primary-dark text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-md shadow-brand-primary/20 hover:shadow-brand-primary/40 transition-all duration-200 flex items-center gap-1.5">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                </svg>
-                Save Plan
+                class="bg-slate-800 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-900 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
+                Save Monthly Plan
             </button>
         </div>
     </div>
 
-    <!-- Compact Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-        <!-- Income Card -->
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-neutral-border hover:shadow-md transition-shadow">
-            <div class="flex justify-between items-start mb-3">
-                <div class="p-1.5 bg-emerald-100 rounded-lg">
-                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <span
-                    class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Income</span>
-            </div>
-            <p class="text-xs text-neutral-text-secondary mb-0.5">Total Income</p>
-            <h3 class="text-xl font-bold text-neutral-text-primary">₹{{ totalIncome | number }}</h3>
-        </div>
-
-        <!-- Fixed Expenses Card -->
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-neutral-border hover:shadow-md transition-shadow">
-            <div class="flex justify-between items-start mb-3">
-                <div class="p-1.5 bg-rose-100 rounded-lg">
-                    <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                </div>
-                <span
-                    class="text-[10px] font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">Fixed</span>
-            </div>
-            <p class="text-xs text-neutral-text-secondary mb-0.5">Fixed Expenses</p>
-            <h3 class="text-xl font-bold text-neutral-text-primary">₹{{ totalFixedExpense | number }}</h3>
-        </div>
-
-        <!-- Variable Expenses Card -->
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-neutral-border hover:shadow-md transition-shadow">
-            <div class="flex justify-between items-start mb-3">
-                <div class="p-1.5 bg-amber-100 rounded-lg">
-                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                </div>
-                <span
-                    class="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Variable</span>
-            </div>
-            <p class="text-xs text-neutral-text-secondary mb-0.5">Variable Expenses</p>
-            <h3 class="text-xl font-bold text-neutral-text-primary">₹{{ totalVariableExpense | number }}</h3>
-        </div>
-
-        <!-- Available Card -->
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-neutral-border hover:shadow-md transition-shadow">
-            <div class="flex justify-between items-start mb-3">
-                <div class="p-1.5 bg-blue-100 rounded-lg">
-                    <svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <span
-                    class="text-[10px] font-bold uppercase tracking-wider text-brand-primary bg-blue-50 px-2 py-0.5 rounded-full">Available</span>
-            </div>
-            <p class="text-xs text-neutral-text-secondary mb-0.5">Left to Budget</p>
-            <h3 class="text-xl font-bold text-brand-primary">₹{{ availableForGoals | number }}</h3>
-        </div>
-    </div>
-
-    <!-- Budget Sections -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-        <!-- Left Column: Budget Inputs (Income, Fixed, Variable) -->
-        <div class="space-y-3">
-            <!-- INCOME SECTION -->
-            <div class="bg-white rounded-xl shadow-sm border border-neutral-border overflow-hidden">
-                <div class="px-4 py-3 border-b border-neutral-border flex justify-between items-center bg-gray-50/50">
-                    <div class="flex items-center gap-2">
-                        <div class="w-1 h-5 bg-emerald-500 rounded-full"></div>
-                        <h2 class="text-base font-bold text-neutral-text-primary">Income Sources</h2>
-                    </div>
-                    <span class="text-emerald-600 font-bold text-base">₹{{ totalIncome | number }}</span>
-                </div>
-
-                <div class="p-0">
-                    <table class="w-full">
-                        <thead class="bg-gray-50/30">
-                            <tr>
-                                <th
-                                    class="px-4 py-2 text-left text-[10px] font-bold text-neutral-text-secondary uppercase tracking-wider w-1/2">
-                                    CATEGORY</th>
-                                <th
-                                    class="px-4 py-2 text-right text-[10px] font-bold text-neutral-text-secondary uppercase tracking-wider w-1/3">
-                                    AMOUNT</th>
-                                <th class="px-4 py-2 w-16"></th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-neutral-border">
-                            <tr *ngFor="let item of incomeItems; let i = index"
-                                class="hover:bg-gray-50 transition-colors group">
-                                <td class="px-4 py-2 text-sm text-neutral-text-primary font-medium">{{ item.categoryName
-                                    }}</td>
-                                <td class="px-4 py-2 text-right text-sm text-emerald-600 font-semibold">₹{{
-                                    item.plannedAmount | number }}</td>
-                                <td class="px-4 py-2 text-center">
-                                    <button (click)="removeItem(incomeItems, i)"
-                                        class="text-neutral-text-secondary hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr class="bg-gray-50/20">
-                                <td class="px-4 py-3">
-                                    <input [(ngModel)]="newIncome.categoryName" type="text" placeholder="e.g., Salary"
-                                        class="w-full px-3 py-1.5 text-sm border border-neutral-border rounded-lg focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 bg-white text-neutral-text-primary transition-all placeholder-gray-400">
-                                </td>
-                                <td class="px-4 py-3">
-                                    <input [(ngModel)]="newIncome.plannedAmount" type="number" placeholder="0"
-                                        class="w-full px-3 py-1.5 text-sm border border-neutral-border rounded-lg text-right focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 bg-white text-neutral-text-primary transition-all placeholder-gray-400">
-                                </td>
-                                <td class="px-4 py-3 text-center">
-                                    <button (click)="addIncome()"
-                                        class="bg-emerald-600 hover:bg-emerald-700 text-white p-1.5 rounded-lg shadow-sm hover:shadow transition-all">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 4v16m8-8H4" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- FIXED EXPENSES SECTION -->
-            <div class="bg-white rounded-xl shadow-sm border border-neutral-border overflow-hidden">
-                <div class="px-4 py-3 border-b border-neutral-border flex justify-between items-center bg-gray-50/50">
-                    <div class="flex items-center gap-2">
-                        <div class="w-1 h-5 bg-rose-500 rounded-full"></div>
-                        <h2 class="text-base font-bold text-neutral-text-primary">Fixed Expenses</h2>
-                    </div>
-                    <span class="text-rose-600 font-bold text-base">₹{{ totalFixedExpense | number }}</span>
-                </div>
-
-                <div class="p-0">
-                    <table class="w-full">
-                        <thead class="bg-gray-50/30">
-                            <tr>
-                                <th
-                                    class="px-4 py-2 text-left text-[10px] font-bold text-neutral-text-secondary uppercase tracking-wider w-1/2">
-                                    CATEGORY</th>
-                                <th
-                                    class="px-4 py-2 text-right text-[10px] font-bold text-neutral-text-secondary uppercase tracking-wider w-1/3">
-                                    AMOUNT</th>
-                                <th class="px-4 py-2 w-16"></th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-neutral-border">
-                            <tr *ngFor="let item of fixedExpenseItems; let i = index"
-                                class="hover:bg-gray-50 transition-colors group">
-                                <td class="px-4 py-2 text-sm text-neutral-text-primary font-medium">{{ item.categoryName
-                                    }}</td>
-                                <td class="px-4 py-2 text-right text-sm text-rose-600 font-semibold">₹{{
-                                    item.plannedAmount | number }}</td>
-                                <td class="px-4 py-2 text-center">
-                                    <button (click)="removeItem(fixedExpenseItems, i)"
-                                        class="text-neutral-text-secondary hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr class="bg-gray-50/20">
-                                <td class="px-4 py-3">
-                                    <select *ngIf="newFixedExpense.categoryName !== 'custom'"
-                                        [(ngModel)]="newFixedExpense.categoryName"
-                                        class="w-full px-3 py-1.5 text-sm border border-neutral-border rounded-lg focus:ring-1 focus:ring-rose-500 focus:border-rose-500 bg-white text-neutral-text-primary transition-all">
-                                        <option value="">Select...</option>
-                                        <option *ngFor="let cat of fixedExpenseCategories" [value]="cat">{{ cat }}
-                                        </option>
-                                        <option value="custom">Custom...</option>
-                                    </select>
-                                    <input *ngIf="newFixedExpense.categoryName === 'custom'"
-                                        [(ngModel)]="customFixedCategory" type="text"
-                                        placeholder="Enter custom category"
-                                        class="w-full px-3 py-1.5 text-sm border border-neutral-border rounded-lg focus:ring-1 focus:ring-rose-500 focus:border-rose-500 bg-white text-neutral-text-primary transition-all">
-                                </td>
-                                <td class="px-4 py-3 align-top">
-                                    <input [(ngModel)]="newFixedExpense.plannedAmount" type="number" placeholder="0"
-                                        class="w-full px-3 py-1.5 text-sm border border-neutral-border rounded-lg text-right focus:ring-1 focus:ring-rose-500 focus:border-rose-500 bg-white text-neutral-text-primary transition-all">
-                                </td>
-                                <td class="px-4 py-3 text-center align-top">
-                                    <button (click)="addFixedExpense()"
-                                        class="bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-lg shadow-sm hover:shadow transition-all">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 4v16m8-8H4" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- VARIABLE EXPENSES SECTION -->
-            <div class="bg-white rounded-xl shadow-sm border border-neutral-border overflow-hidden">
-                <div class="px-4 py-3 border-b border-neutral-border flex justify-between items-center bg-gray-50/50">
-                    <div class="flex items-center gap-2">
-                        <div class="w-1 h-5 bg-amber-500 rounded-full"></div>
-                        <h2 class="text-base font-bold text-neutral-text-primary">Variable Expenses</h2>
-                    </div>
-                    <span class="text-amber-600 font-bold text-base">₹{{ totalVariableExpense | number }}</span>
-                </div>
-
-                <div class="p-0">
-                    <table class="w-full">
-                        <thead class="bg-gray-50/30">
-                            <tr>
-                                <th
-                                    class="px-4 py-2 text-left text-[10px] font-bold text-neutral-text-secondary uppercase tracking-wider w-1/2">
-                                    CATEGORY</th>
-                                <th
-                                    class="px-4 py-2 text-right text-[10px] font-bold text-neutral-text-secondary uppercase tracking-wider w-1/3">
-                                    AMOUNT</th>
-                                <th class="px-4 py-2 w-16"></th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-neutral-border">
-                            <tr *ngFor="let item of variableExpenseItems; let i = index"
-                                class="hover:bg-gray-50 transition-colors group">
-                                <td class="px-4 py-2 text-sm text-neutral-text-primary font-medium">{{ item.categoryName
-                                    }}</td>
-                                <td class="px-4 py-2 text-right text-sm text-amber-600 font-semibold">₹{{
-                                    item.plannedAmount | number }}</td>
-                                <td class="px-4 py-2 text-center">
-                                    <button (click)="removeItem(variableExpenseItems, i)"
-                                        class="text-neutral-text-secondary hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr class="bg-gray-50/20">
-                                <td class="px-4 py-3">
-                                    <select *ngIf="newVariableExpense.categoryName !== 'custom'"
-                                        [(ngModel)]="newVariableExpense.categoryName"
-                                        class="w-full px-3 py-1.5 text-sm border border-neutral-border rounded-lg focus:ring-1 focus:ring-amber-500 focus:border-amber-500 bg-white text-neutral-text-primary transition-all">
-                                        <option value="">Select...</option>
-                                        <option *ngFor="let cat of variableExpenseCategories" [value]="cat">{{ cat
-                                            }}</option>
-                                        <option value="custom">Custom...</option>
-                                    </select>
-                                    <input *ngIf="newVariableExpense.categoryName === 'custom'"
-                                        [(ngModel)]="customVariableCategory" type="text"
-                                        placeholder="Enter custom category"
-                                        class="w-full px-3 py-1.5 text-sm border border-neutral-border rounded-lg focus:ring-1 focus:ring-amber-500 focus:border-amber-500 bg-white text-neutral-text-primary transition-all">
-                                </td>
-                                <td class="px-4 py-3 align-top">
-                                    <input [(ngModel)]="newVariableExpense.plannedAmount" type="number" placeholder="0"
-                                        class="w-full px-3 py-1.5 text-sm border border-neutral-border rounded-lg text-right focus:ring-1 focus:ring-amber-500 focus:border-amber-500 bg-white text-neutral-text-primary transition-all">
-                                </td>
-                                <td class="px-4 py-3 text-center align-top">
-                                    <button (click)="addVariableExpense()"
-                                        class="bg-amber-600 hover:bg-amber-700 text-white p-1.5 rounded-lg shadow-sm hover:shadow transition-all">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 4v16m8-8H4" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Column: Financial Plan Note -->
-        <div class="h-full">
-            <div class="bg-white rounded-xl shadow-sm border border-neutral-border p-6 h-full">
-                <h2 class="text-3xl font-bold text-neutral-text-primary mb-4 text-center"
-                    style="font-family: 'Caveat', cursive;">My Financial Plan</h2>
-
-                <div class="space-y-4 text-lg text-neutral-text-secondary" style="font-family: 'Caveat', cursive;">
-
-                    <!-- Income Section -->
-                    <div>
-                        <h3 class="text-xl font-bold text-emerald-600 mb-2 border-b border-emerald-100 pb-1">Income
-                            Sources</h3>
-                        <ul class="space-y-1">
-                            <li *ngFor="let item of incomeItems"
-                                class="flex justify-between items-center hover:bg-gray-50 px-2 py-1 rounded transition-colors">
-                                <span>{{ item.categoryName }}</span>
-                                <span class="font-bold text-emerald-700">₹{{ item.plannedAmount | number }}</span>
-                            </li>
-                            <li *ngIf="incomeItems.length === 0" class="text-gray-400 italic px-2">No income sources
-                                added yet.</li>
-                        </ul>
-                    </div>
-
-                    <!-- Expenses Section -->
-                    <div>
-                        <h3 class="text-xl font-bold text-rose-600 mb-3 border-b border-rose-100 pb-1">Expenses</h3>
-
-                        <!-- Fixed -->
-                        <div class="mb-4 pl-2">
-                            <h4 class="font-bold text-neutral-text-primary text-lg mb-1 flex items-center gap-2">
-                                <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Fixed
-                            </h4>
-                            <ul class="space-y-1 pl-3 border-l-2 border-rose-50">
-                                <li *ngFor="let item of fixedExpenseItems"
-                                    class="flex justify-between items-center hover:bg-gray-50 px-2 py-1 rounded transition-colors">
-                                    <span>{{ item.categoryName }}</span>
-                                    <span class="font-bold text-rose-700">₹{{ item.plannedAmount | number }}</span>
-                                </li>
-                                <li *ngIf="fixedExpenseItems.length === 0" class="text-gray-400 italic px-2">No fixed
-                                    expenses yet.</li>
-                            </ul>
-                        </div>
-
-                        <!-- Variable -->
-                        <div class="pl-2">
-                            <h4 class="font-bold text-neutral-text-primary text-lg mb-1 flex items-center gap-2">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Variable
-                            </h4>
-                            <ul class="space-y-1 pl-3 border-l-2 border-amber-50">
-                                <li *ngFor="let item of variableExpenseItems"
-                                    class="flex justify-between items-center hover:bg-gray-50 px-2 py-1 rounded transition-colors">
-                                    <span>{{ item.categoryName }}</span>
-                                    <span class="font-bold text-amber-700">₹{{ item.plannedAmount | number }}</span>
-                                </li>
-                                <li *ngIf="variableExpenseItems.length === 0" class="text-gray-400 italic px-2">No
-                                    variable expenses yet.</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Quote Footer -->
-                    <div class="mt-6 pt-4 border-t border-neutral-border text-center">
-                        <p class="text-xl italic text-neutral-text-primary mb-2">
-                            "A budget is telling your money where to go instead of wondering where it went."
-                        </p>
-                        <div class="text-2xl font-bold text-brand-primary">All the best! 🌟</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
 </div>

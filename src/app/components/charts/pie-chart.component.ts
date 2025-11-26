@@ -22,7 +22,7 @@ interface ChartData {
         </svg>
         <!-- Center Hole for Donut Chart -->
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div class="w-1/2 h-1/2 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
+          <div class="w-1/3 h-1/3 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
             <ng-container *ngIf="showTotal">
                 <span class="text-[10px] text-gray-500 font-medium leading-none">Total</span>
                 <span class="text-xs font-bold text-gray-800 leading-tight">₹{{total | number}}</span>

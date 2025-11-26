@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FinanceService, Transaction, Category } from '../../services/finance';
+import { PlanningService } from '../../services/planning.service';
 
 @Component({
   selector: 'app-transaction-form',
@@ -28,35 +29,48 @@ export class TransactionFormComponent implements OnInit {
   maxDate: string = new Date().toISOString().split('T')[0];
   minDate: string = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-  constructor(private financeService: FinanceService, private router: Router) { }
+  constructor(
+    private financeService: FinanceService,
+    private router: Router,
+    private planningService: PlanningService
+  ) { }
 
   ngOnInit() {
     this.loadCategories();
   }
 
   loadCategories() {
+    // Get predefined categories from PlanningService
+    const predefined = this.planningService.getPredefinedCategories();
+    const allPredefined = [
+      ...predefined.DEBT,
+      ...predefined.ESSENTIAL,
+      ...predefined.DISCRETIONARY
+    ].map(c => ({ name: c.name }));
+
     this.financeService.getCategories().subscribe(data => {
-      this.categories = data;
+      // Create a Set of existing names for easy lookup (case-insensitive)
+      const existingNames = new Set(data.map(c => c.name.toLowerCase()));
+
+      // Filter out predefined categories that already exist in the DB response
+      const uniquePredefined = allPredefined.filter(c => !existingNames.has(c.name.toLowerCase()));
+
+      // Combine existing DB categories with unique predefined ones
+      this.categories = [...data, ...uniquePredefined];
+
+      // Sort alphabetically
+      this.categories.sort((a, b) => a.name.localeCompare(b.name));
     });
   }
 
   onSubmit() {
-    // If creating a new category, first save the category
+    // If creating a new category, just set the name. 
+    // The backend's saveTransaction logic handles "find or create" safely.
     if (this.isNewCategory && this.newCategoryName) {
-      const newCategory: Category = { name: this.newCategoryName };
-      this.financeService.addCategory(newCategory).subscribe({
-        next: (savedCategory) => {
-          this.transaction.category = savedCategory;
-          this.saveTransaction();
-        },
-        error: (err) => {
-          console.error('Error creating category:', err);
-          alert('Failed to create category. Please try again.');
-        }
-      });
-    } else {
-      this.saveTransaction();
+      this.transaction.category = { name: this.newCategoryName };
     }
+
+    this.saveTransaction();
   }
 
   private saveTransaction() {
@@ -73,6 +87,6 @@ export class TransactionFormComponent implements OnInit {
   }
 
   compareCategories(c1: Category, c2: Category): boolean {
-    return c1 && c2 ? c1.id === c2.id : c1 === c2;
+    return c1 && c2 ? c1.name === c2.name : c1 === c2;
   }
 }

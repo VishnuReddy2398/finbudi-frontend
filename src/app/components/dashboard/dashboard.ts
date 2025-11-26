@@ -1,32 +1,48 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router'; // Added Router
 import { FinanceService, Transaction } from '../../services/finance';
 import { BudgetService } from '../../services/budget.service';
 import { AuthService } from '../../services/auth.service';
-import { DashboardService, BudgetVariance, ChartData } from '../../services/dashboard.service';
+import { DashboardService, BudgetVariance, PieChartData } from '../../services/dashboard.service';
 import { PieChartComponent } from '../charts/pie-chart.component';
 import { StatsWidgetComponent } from '../gamification/stats-widget/stats-widget.component';
 import { ChallengesWidgetComponent } from '../gamification/challenges-widget/challenges-widget.component';
 import { TelegramLinkDialogComponent } from '../telegram-link-dialog/telegram-link-dialog.component';
 import { TelegramService } from '../../services/telegram.service';
 import { AnalyticsService } from '../../services/analytics.service';
+import { PlanningService, MonthlyPlan } from '../../services/planning.service'; // Added PlanningService and MonthlyPlan
+import { CarryForwardDialogComponent } from '../carry-forward-dialog/carry-forward-dialog.component'; // Added CarryForwardDialogComponent
+
+// Define local interface for Chart.js data
+interface BarChartData {
+  labels: string[];
+  datasets: any[];
+}
+
+import { BaseChartDirective } from 'ng2-charts'; // Import BaseChartDirective
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, PieChartComponent, StatsWidgetComponent, ChallengesWidgetComponent, TelegramLinkDialogComponent],
+  imports: [CommonModule, FormsModule, RouterLink, PieChartComponent, ChallengesWidgetComponent, TelegramLinkDialogComponent, CarryForwardDialogComponent, BaseChartDirective], // Add BaseChartDirective
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
 export class DashboardComponent implements OnInit {
   transactions: Transaction[] = [];
+
+  get recentTransactions(): Transaction[] {
+    return this.transactions.slice(0, 5);
+  }
+
   categories: any[] = [];
   totalIncome: number = 0;
   totalExpense: number = 0;
   totalPlannedIncome: number = 0;
   totalPlannedExpense: number = 0;
+  totalUnplannedExpense: number = 0;
   balance: number = 0;
 
   isSidebarOpen = false;
@@ -51,8 +67,9 @@ export class DashboardComponent implements OnInit {
   prediction: any = null;
 
   // Chart Data
-  expenseChartData: ChartData[] = [];
-  unplannedChartData: ChartData[] = [];
+  expenseChartData: PieChartData[] = [];
+  unplannedChartData: PieChartData[] = [];
+  balanceChartData: PieChartData[] = [];
 
   // Quick Edit/Delete State
   editingTransaction: Transaction | null = null;
@@ -68,13 +85,19 @@ export class DashboardComponent implements OnInit {
   maxDate: string = new Date().toISOString().split('T')[0];
   minDate: string = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
+  // Carry Forward Logic
+  showCarryForwardDialog = false;
+  previousPlan: MonthlyPlan | null = null;
+
   constructor(
     private financeService: FinanceService,
     private budgetService: BudgetService,
     private authService: AuthService,
     private telegramService: TelegramService,
     private dashboardService: DashboardService,
-    private analyticsService: AnalyticsService
+    private analyticsService: AnalyticsService,
+    private planningService: PlanningService,
+    private router: Router
   ) { }
 
   @ViewChild(ChallengesWidgetComponent) challengesWidget!: ChallengesWidgetComponent;
@@ -92,9 +115,85 @@ export class DashboardComponent implements OnInit {
     this.checkVerificationStatus();
     this.loadTelegramStatus();
     this.loadPrediction();
+    this.checkPlanningStatus();
 
     const now = new Date();
     this.loadBudgetPlan(now.getMonth() + 1, now.getFullYear());
+  }
+
+  checkPlanningStatus() {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+
+    // Check current month plan
+    this.planningService.getPlan(currentMonth, currentYear).subscribe({
+      next: (plan) => {
+        // Backend returns an empty plan object if none exists.
+        // Check if it has an ID or items to confirm it's a real plan.
+        if (plan && plan.id && plan.totalIncome > 0) {
+          // Plan exists, stay on dashboard
+        } else {
+          // No real plan for current month, check previous month
+          this.checkPreviousMonth(currentMonth, currentYear);
+        }
+      },
+      error: () => {
+        // Error case (fallback), check previous month
+        this.checkPreviousMonth(currentMonth, currentYear);
+      }
+    });
+  }
+
+  checkPreviousMonth(currentMonth: number, currentYear: number) {
+    let prevMonth = currentMonth - 1;
+    let prevYear = currentYear;
+    if (prevMonth === 0) {
+      prevMonth = 12;
+      prevYear--;
+    }
+
+    this.planningService.getPlan(prevMonth, prevYear).subscribe({
+      next: (prevPlan) => {
+        if (prevPlan && prevPlan.id && prevPlan.totalIncome > 0) {
+          // Previous plan exists, show carry forward dialog
+          this.previousPlan = prevPlan;
+          this.showCarryForwardDialog = true;
+        } else {
+          // No previous plan either -> NEW USER -> Redirect to Wizard
+          this.router.navigate(['/planning-wizard']);
+        }
+      },
+      error: () => {
+        // No previous plan either -> NEW USER -> Redirect to Wizard
+        this.router.navigate(['/planning-wizard']);
+      }
+    });
+  }
+
+  handleCarryForward() {
+    if (this.previousPlan) {
+      const now = new Date();
+      const newPlan: MonthlyPlan = {
+        ...this.previousPlan,
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
+        carryForward: true
+      };
+
+      this.planningService.savePlan(newPlan).subscribe({
+        next: () => {
+          this.showCarryForwardDialog = false;
+          this.loadBudgetVariance(); // Reload budget data
+          alert('Plan carried forward successfully! 🚀');
+        },
+        error: (err) => console.error('Error carrying forward plan:', err)
+      });
+    }
+  }
+
+  handleModifyPlan() {
+    this.router.navigate(['/planning-wizard']);
   }
 
   loadPrediction() {
@@ -140,6 +239,16 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  // Savings Rate
+  savingsRate: number = 0;
+  savingsRateTrend: 'UP' | 'DOWN' | 'STABLE' = 'STABLE';
+
+  // New Chart Data
+  budgetVsActualChartData: BarChartData = { labels: [], datasets: [] };
+  sixMonthTrendChartData: BarChartData = { labels: [], datasets: [] };
+
+  // ... existing code ...
+
   calculateTotals() {
     const totals = this.dashboardService.calculateTotals(
       this.transactions,
@@ -150,6 +259,59 @@ export class DashboardComponent implements OnInit {
     this.totalIncome = totals.totalIncome;
     this.totalExpense = totals.totalExpense;
     this.balance = totals.balance;
+
+    // Update Balance Chart Data (Expenses vs Balance)
+    this.balanceChartData = [
+      { label: 'Expenses', value: this.totalExpense, color: '#F87171' }, // Red
+      { label: 'Balance', value: this.balance > 0 ? this.balance : 0, color: '#60A5FA' }  // Blue
+    ];
+
+    // Calculate Savings Rate
+    if (this.totalIncome > 0) {
+      this.savingsRate = Math.round(((this.totalIncome - this.totalExpense) / this.totalIncome) * 100);
+    } else {
+      this.savingsRate = 0;
+    }
+
+    // Calculate Trend (Simple logic for now: compare with previous plan if available)
+    if (this.previousPlan && this.previousPlan.totalIncome > 0) {
+      const prevExpense = this.previousPlan.items
+        .filter(i => i.type === 'EXPENSE')
+        .reduce((sum, i) => sum + i.plannedAmount, 0); // Using planned as proxy for actual if actual not stored in plan
+
+      const prevSavingsRate = Math.round(((this.previousPlan.totalIncome - prevExpense) / this.previousPlan.totalIncome) * 100);
+
+      if (this.savingsRate > prevSavingsRate) this.savingsRateTrend = 'UP';
+      else if (this.savingsRate < prevSavingsRate) this.savingsRateTrend = 'DOWN';
+      else this.savingsRateTrend = 'STABLE';
+    }
+
+    // Load 6-Month Trend Data
+    this.loadSixMonthTrend();
+  }
+
+  loadSixMonthTrend() {
+    this.analyticsService.getSixMonthTrend().subscribe({
+      next: (data) => {
+        const labels = data.map(d => d.month);
+        const expenseData = data.map(d => d.expense);
+
+        this.sixMonthTrendChartData = {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Spending Trend',
+              data: expenseData,
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              tension: 0.4,
+              fill: true
+            }
+          ]
+        };
+      },
+      error: (err) => console.error('Error loading trend data:', err)
+    });
   }
 
   loadBudgetVariance() {
@@ -190,12 +352,53 @@ export class DashboardComponent implements OnInit {
         this.expenseChartData = chartData.expenseChartData;
         this.unplannedChartData = chartData.unplannedChartData;
 
+        // Calculate Total Unplanned Expense
+        this.totalUnplannedExpense = this.unplannedChartData.reduce((sum, item) => sum + item.value, 0);
+
+        // Prepare Budget vs Actual Chart Data (Variable Expenses Only)
+        this.prepareBudgetVsActualChart();
+
         this.loadBudgetPlan(month, year);
         // Recalculate totals now that budgetVariances is populated
         this.calculateTotals();
       },
       error: (err) => console.error('Error loading budget variance:', err)
     });
+  }
+
+  prepareBudgetVsActualChart() {
+    // Aggregate by category name to handle potential duplicates (e.g. same name different IDs)
+    const aggregated = new Map<string, { planned: number, actual: number }>();
+
+    this.visibleBudgetVariances.forEach(v => {
+      const current = aggregated.get(v.categoryName) || { planned: 0, actual: 0 };
+      aggregated.set(v.categoryName, {
+        planned: current.planned + v.planned,
+        actual: current.actual + v.actual
+      });
+    });
+
+    const labels = Array.from(aggregated.keys());
+    const plannedData = Array.from(aggregated.values()).map(d => d.planned);
+    const actualData = Array.from(aggregated.values()).map(d => d.actual);
+
+    this.budgetVsActualChartData = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Planned',
+          data: plannedData,
+          backgroundColor: '#94a3b8', // Slate 400
+          borderRadius: 4
+        },
+        {
+          label: 'Actual',
+          data: actualData,
+          backgroundColor: '#3b82f6', // Blue 500
+          borderRadius: 4
+        }
+      ]
+    };
   }
 
   loadBudgetPlan(month: number, year: number) {
@@ -216,6 +419,8 @@ export class DashboardComponent implements OnInit {
   openEditModal(transaction: Transaction) {
     this.editingTransaction = transaction;
     this.editForm = { ...transaction };
+    // Pre-fill category name for the input field
+    this.editForm.categoryName = transaction.category?.name || '';
     this.showEditModal = true;
   }
 
@@ -227,6 +432,18 @@ export class DashboardComponent implements OnInit {
 
   saveEdit() {
     if (!this.editingTransaction?.id) return;
+
+    // Resolve Category Name to Object
+    const name = this.editForm.categoryName;
+    if (name) {
+      const existingCategory = this.categories.find(c => c.name.toLowerCase() === name.toLowerCase());
+      if (existingCategory) {
+        this.editForm.category = existingCategory;
+      } else {
+        // New Category - Backend should handle creation or mapping
+        this.editForm.category = { name: name };
+      }
+    }
 
     this.financeService.updateTransaction(this.editingTransaction.id, this.editForm).subscribe({
       next: () => {

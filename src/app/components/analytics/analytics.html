@@ -1,67 +1,145 @@
-<div class="container mx-auto p-6 max-w-7xl">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
-            <span class="text-4xl">📈</span> Financial Insights
-        </h1>
-        <p class="text-slate-500 mt-2 text-lg">Visualize your spending habits and trends.</p>
+<div class="p-6 max-w-7xl mx-auto space-y-8 animate-fade-in">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800">Financial Insights</h1>
+            <p class="text-slate-500">Your complete financial health overview.</p>
+        </div>
+        <div class="text-sm text-slate-400">
+            {{ insights?.daysLeftInMonth }} days left in this month
+        </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <!-- Daily Spend Chart -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-            <h2 class="text-xl font-bold text-slate-700 mb-6">Daily Spending Trend</h2>
-            <div class="relative h-80">
-                <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" [type]="lineChartType">
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex justify-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+
+    <div *ngIf="!loading && insights" class="space-y-8">
+
+        <!-- 1. Monthly Overview Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Income -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                <p class="text-xs font-bold text-slate-400 uppercase">Monthly Income</p>
+                <p class="text-2xl font-bold text-slate-800 mt-1">₹{{ insights.monthlyIncome | number }}</p>
+            </div>
+
+            <!-- Fixed -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                <p class="text-xs font-bold text-slate-400 uppercase">Fixed Commitments</p>
+                <p class="text-2xl font-bold text-rose-600 mt-1">₹{{ insights.fixedObligations | number }}</p>
+                <p class="text-xs text-rose-400 mt-1">{{ insights.fixedPercentage | number:'1.0-1' }}% of Income</p>
+            </div>
+
+            <!-- Discretionary -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                <p class="text-xs font-bold text-slate-400 uppercase">Discretionary Spent</p>
+                <p class="text-2xl font-bold text-emerald-600 mt-1">₹{{ insights.discretionarySpent | number }}</p>
+                <p class="text-xs text-emerald-400 mt-1">Budget: ₹{{ insights.discretionaryBudget | number }}</p>
+            </div>
+        </div>
+
+        <!-- 2. Daily Spending Trend (Row 2) -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 border border-slate-100">
+            <h2 class="text-lg font-bold text-slate-800 mb-4">Daily Spending Trend</h2>
+            <div class="h-48"> <!-- Reduced height -->
+                <canvas baseChart [data]="lineChartData" [type]="lineChartType" [options]="lineChartOptions">
                 </canvas>
             </div>
         </div>
 
-        <!-- Category Split Chart -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-            <h2 class="text-xl font-bold text-slate-700 mb-6">Spending by Category</h2>
-            <div class="relative h-80 flex justify-center">
-                <canvas baseChart [data]="doughnutChartData" [options]="doughnutChartOptions"
-                    [type]="doughnutChartType">
-                </canvas>
-            </div>
-        </div>
-    </div>
+        <!-- 3. Detailed Insights Grid (Row 3 - Side by Side) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-    <!-- Top Categories Insights -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2">
-            <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-            Top Spending Categories
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div *ngFor="let cat of topCategories; let i = index"
-                class="flex items-center gap-4 p-4 rounded-xl border border-slate-50 hover:bg-slate-50 transition-colors">
-                <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold" [ngClass]="{
-                        'bg-red-50 text-red-600': i === 0,
-                        'bg-orange-50 text-orange-600': i === 1,
-                        'bg-blue-50 text-blue-600': i > 1
-                    }">
-                    {{i + 1}}
-                </div>
-                <div class="flex-1">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-bold text-slate-700">{{cat.categoryName}}</span>
-                        <span class="font-bold text-slate-800">₹{{cat.amount | number}}</span>
+            <!-- Col 1: Where Your Money Goes (Takes 2 cols) -->
+            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col">
+                <h2 class="text-lg font-bold text-slate-800 mb-4">Where Your Money Goes</h2>
+                <div class="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar" style="max-height: 400px;">
+                    <!-- Fixed Section -->
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-rose-500"></span> Fixed Commitments
+                        </h3>
+                        <div class="space-y-2">
+                            <div *ngFor="let item of insights.debtObligations"
+                                class="flex justify-between items-center p-2 bg-slate-50 rounded-lg text-sm">
+                                <div class="flex items-center gap-2">
+                                    <span>{{ item.categoryIcon }}</span>
+                                    <span class="font-medium text-slate-700">{{ item.categoryName }}</span>
+                                </div>
+                                <span class="font-bold text-slate-800">₹{{ item.limit | number }}</span>
+                            </div>
+                            <div *ngFor="let item of insights.essentialLiabilities"
+                                class="flex justify-between items-center p-2 bg-slate-50 rounded-lg text-sm">
+                                <div class="flex items-center gap-2">
+                                    <span>{{ item.categoryIcon }}</span>
+                                    <span class="font-medium text-slate-700">{{ item.categoryName }}</span>
+                                </div>
+                                <span class="font-bold text-slate-800">₹{{ item.limit | number }}</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="w-full bg-slate-100 rounded-full h-2">
-                        <div class="h-full rounded-full" [ngClass]="{
-                                'bg-red-500': i === 0,
-                                'bg-orange-500': i === 1,
-                                'bg-blue-500': i > 1
-                            }" [style.width.%]="cat.percentage"></div>
-                    </div>
-                    <div class="text-xs text-slate-400 mt-1 text-right">{{cat.percentage | number:'1.1-1'}}% of total
+
+                    <!-- Discretionary Section -->
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Discretionary Spending
+                        </h3>
+                        <div class="space-y-3">
+                            <div *ngFor="let item of insights.discretionarySpending" class="relative">
+                                <div class="flex justify-between items-center mb-1 text-xs">
+                                    <span class="font-medium text-slate-700 flex items-center gap-2">
+                                        <span>{{ item.categoryIcon }}</span> {{ item.categoryName }}
+                                    </span>
+                                    <span class="text-slate-500">₹{{ item.spent | number }} / ₹{{ item.limit | number
+                                        }}</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5">
+                                    <div class="h-1.5 rounded-full transition-all duration-500"
+                                        [ngClass]="{'bg-emerald-500': item.percentage < 50, 'bg-yellow-500': item.percentage >= 50 && item.percentage < 80, 'bg-rose-500': item.percentage >= 80}"
+                                        [style.width.%]="item.percentage">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Col 2: Smart Insights & Allocation -->
+            <div class="space-y-6 flex flex-col">
+                <!-- Smart Insights -->
+                <div
+                    class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl shadow-lg p-6 text-white flex-1">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <span>🧠</span> Smart Insights
+                    </h2>
+                    <div class="space-y-3">
+                        <div *ngFor="let tip of insights.tips"
+                            class="bg-white/10 backdrop-blur-sm p-3 rounded-lg text-sm leading-relaxed border border-white/10">
+                            {{ tip }}
+                        </div>
+                        <div *ngIf="insights.tips.length === 0"
+                            class="bg-white/10 backdrop-blur-sm p-3 rounded-lg text-sm border border-white/10">
+                            ✅ You're doing great! No critical alerts.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Allocation Chart -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex-1">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase mb-4">Allocation</h3>
+                    <div class="h-40">
+                        <canvas baseChart [data]="doughnutChartData" [type]="doughnutChartType"
+                            [options]="{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }">
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+
         </div>
+
     </div>
 </div>

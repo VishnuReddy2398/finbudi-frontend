@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BudgetService } from '../../services/budget.service';
 import { FinanceService } from '../../services/finance';
+import { PlanningService } from '../../services/planning.service';
 
 interface PlanItem {
   categoryName: string;
   plannedAmount: number;
   type: 'INCOME' | 'EXPENSE';
   fixed: boolean;
+  categoryGroup?: 'DEBT' | 'ESSENTIAL' | 'DISCRETIONARY';
 }
 
 @Component({
@@ -21,6 +23,7 @@ interface PlanItem {
 export class PlanningComponent implements OnInit {
   currentMonth: number;
   currentYear: number;
+  isEditing = false;
 
   incomeItems: PlanItem[] = [];
   fixedExpenseItems: PlanItem[] = [];
@@ -39,12 +42,14 @@ export class PlanningComponent implements OnInit {
   customVariableCategory = '';
 
   // Predefined categories
-  fixedExpenseCategories: string[] = ['Rent', 'Car Loan EMI', 'Personal Loan EMI', 'Phone EMI', 'SIP', 'Bills'];
-  variableExpenseCategories: string[] = ['Food', 'Petrol', 'Movie', 'Vacation', 'Shopping', 'Health'];
+  debtCategories: any[] = [];
+  essentialCategories: any[] = [];
+  discretionaryCategories: any[] = [];
 
   constructor(
     private budgetService: BudgetService,
-    private financeService: FinanceService
+    private financeService: FinanceService,
+    private planningService: PlanningService
   ) {
     const now = new Date();
     this.currentMonth = now.getMonth() + 1;
@@ -57,8 +62,10 @@ export class PlanningComponent implements OnInit {
   }
 
   loadCategories() {
-    // Categories are now predefined in the component
-    // Users can add custom categories via the "Custom..." option
+    const categories = this.planningService.getPredefinedCategories();
+    this.debtCategories = categories.DEBT;
+    this.essentialCategories = categories.ESSENTIAL;
+    this.discretionaryCategories = categories.DISCRETIONARY;
   }
 
   loadPlan() {
@@ -96,7 +103,8 @@ export class PlanningComponent implements OnInit {
         categoryName: category,
         plannedAmount: Number(this.newFixedExpense.plannedAmount),
         type: 'EXPENSE',
-        fixed: true
+        fixed: true,
+        categoryGroup: 'ESSENTIAL' // Default to ESSENTIAL for now, user can refine if needed
       });
       this.newFixedExpense = { categoryName: '', plannedAmount: 0 };
       this.customFixedCategory = '';
@@ -112,7 +120,8 @@ export class PlanningComponent implements OnInit {
         categoryName: category,
         plannedAmount: Number(this.newVariableExpense.plannedAmount),
         type: 'EXPENSE',
-        fixed: false
+        fixed: false,
+        categoryGroup: 'DISCRETIONARY'
       });
       this.newVariableExpense = { categoryName: '', plannedAmount: 0 };
       this.customVariableCategory = '';
@@ -139,9 +148,10 @@ export class PlanningComponent implements OnInit {
       next: (response) => {
         // Show success message for 3 seconds
         alert('✅ Budget plan saved successfully! Your budgets have been synced.');
+        this.isEditing = false; // Exit edit mode
         setTimeout(() => {
           this.loadPlan();
-        }, 3000);
+        }, 1000);
       },
       error: (err) => {
         console.error('Error saving plan:', err);
@@ -154,5 +164,13 @@ export class PlanningComponent implements OnInit {
     const months = ['January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'];
     return months[this.currentMonth - 1];
+  }
+
+  toggleEdit() {
+    this.isEditing = !this.isEditing;
+    if (!this.isEditing) {
+      // Reload plan to discard unsaved changes if cancelling
+      this.loadPlan();
+    }
   }
 }
