@@ -5,13 +5,17 @@ import { Observable } from 'rxjs';
 export interface Category {
   id?: number;
   name: string;
+  categoryGroup?: string;
+  icon?: string;
 }
 
 export interface Transaction {
   id?: number;
   amount: number;
   type: 'INCOME' | 'EXPENSE';
-  category?: Category;
+  categoryName: string;
+  categoryIcon?: string;
+  categoryId?: number;
   date: string;
   description: string;
 }
@@ -61,11 +65,11 @@ export class FinanceService {
     return this.http.post<Category>(`${this.apiUrl}/categories`, category);
   }
 
-  getWeeklyReport(): Observable<Transaction[]> {
-    return this.http.get<Transaction[]>(`${this.apiUrl}/reports/weekly`);
+  getWeeklyReport(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/reports/weekly`);
   }
 
-  getMonthlyReport(): Observable<Transaction[]> {
-    return this.http.get<Transaction[]>(`${this.apiUrl}/reports/monthly`);
+  getMonthlyReport(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/reports/monthly`);
   }
 }

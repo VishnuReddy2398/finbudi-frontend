@@ -121,6 +121,13 @@ export class TransactionsComponent implements OnInit {
         this.editForm = this.getEmptyTransaction();
     }
 
+    onEditCategoryChange() {
+        const selected = this.categories.find(c => c.name === this.editForm.categoryName);
+        if (selected && selected.id) {
+            this.editForm.categoryId = selected.id;
+        }
+    }
+
     saveEdit() {
         if (!this.editingTransaction?.id) return;
 
@@ -166,7 +173,9 @@ export class TransactionsComponent implements OnInit {
             amount: 0,
             type: 'EXPENSE',
             date: new Date().toISOString().split('T')[0],
-            description: ''
+            description: '',
+            categoryName: '',
+            categoryId: 0
         };
     }
 }

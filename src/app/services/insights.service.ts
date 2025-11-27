@@ -33,6 +33,9 @@ export interface FinancialInsightsDTO {
     debtObligations: BudgetDTO[];
     essentialLiabilities: BudgetDTO[];
     discretionarySpending: BudgetDTO[];
+    savingsObligations: BudgetDTO[];
+
+    savingsInvested: number;
 
     highDebtLoad: boolean;
     goodSavingsRate: boolean;

@@ -238,13 +238,11 @@
                 <td class="py-3 px-4 font-medium text-slate-800">{{ t.description }}</td>
                 <td class="py-3 px-4">
                   <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs border border-slate-200">{{
-                    t.category?.name }}</span>
+                    t.categoryName }}</span>
                 </td>
                 <td class="py-3 px-4">
-                  <span
-                    [ngClass]="t.type === 'INCOME' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'"
-                    class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wide">
-                    {{ t.type }}
+                  <span [ngClass]="getTypeClass(t)" class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wide">
+                    {{ getDisplayType(t) }}
                   </span>
                 </td>
                 <td class="py-3 px-4 text-right font-bold"
@@ -291,7 +289,10 @@
                         maintainAspectRatio: false,
                         scales: {
                             y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-                            x: { grid: { display: false } }
+                            x: { 
+                                grid: { display: false },
+                                ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 }
+                            }
                         },
                         plugins: {
                             legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8 } }

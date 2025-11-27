@@ -64,10 +64,11 @@ export class PlanningComponent implements OnInit {
   }
 
   loadCategories() {
-    const categories = this.planningService.getPredefinedCategories();
-    this.debtCategories = categories.DEBT;
-    this.essentialCategories = categories.ESSENTIAL;
-    this.discretionaryCategories = categories.DISCRETIONARY;
+    this.planningService.getPredefinedCategories().subscribe(categories => {
+      this.debtCategories = categories.DEBT;
+      this.essentialCategories = categories.ESSENTIAL;
+      this.discretionaryCategories = categories.DISCRETIONARY;
+    });
   }
 
   loadPlan() {

@@ -4,13 +4,14 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface UserStats {
-    id: number;
     totalPoints: number;
     currentStreak: number;
     longestStreak: number;
-    lastActivityDate: string;
     transactionCount: number;
     goalsCompleted: number;
+    level: string;
+    nextLevelPoints: number;
+    username: string;
 }
 
 export interface Achievement {

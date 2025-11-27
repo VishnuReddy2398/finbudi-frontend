@@ -47,8 +47,8 @@ export class DashboardService {
         // Fixed Expenses = Only expenses for PLANNED categories
         const plannedExpenses = monthlyTransactions
             .filter(t => t.type === 'EXPENSE' &&
-                t.category &&
-                plannedCategories.includes(t.category.name.toLowerCase()))
+                t.categoryName &&
+                plannedCategories.includes(t.categoryName.toLowerCase()))
             .reduce((sum, t) => sum + t.amount, 0);
 
         // All expenses (for current balance calculation)
@@ -101,23 +101,23 @@ export class DashboardService {
         const plannedColors = ['#3B82F6', '#10B981', '#8B5CF6', '#06B6D4', '#6366F1', '#64748B'];
         const unplannedColors = ['#EF4444', '#F59E0B', '#F97316', '#DC2626', '#D97706', '#B91C1C'];
 
-        // Chart 1: Planned Category Expenses (actual spending per category)
-        // User requested: filter(v => v.categoryType === 'EXPENSE' && v.actual > 0)
+        // Chart 1: Planned Category Expenses (ACTUAL spending for planned categories)
+        // User requested: filter(v => v.planned > 0 && v.actual > 0)
         const expenseChartData = mergedVariances
-            .filter(v => v.categoryType === 'EXPENSE' && v.actual > 0)
+            .filter(v => v.planned > 0 && v.actual > 0)
             .map((v, index) => ({
                 label: v.categoryName, // Now normalized to Title Case
-                value: v.actual,
+                value: v.actual,       // Show ACTUAL spent amount
                 color: plannedColors[index % plannedColors.length]
             }));
 
-        // Chart 2: Unplanned Expenses (spending beyond budget per category)
-        // User requested: filter(v => v.categoryType === 'EXPENSE' && v.variance < 0)
+        // Chart 2: Unplanned Expenses (Strictly categories with 0 budget)
+        // User requested: filter(v => v.planned === 0 && v.actual > 0)
         const unplannedChartData = mergedVariances
-            .filter(v => v.categoryType === 'EXPENSE' && v.variance < 0)
+            .filter(v => v.planned === 0 && v.actual > 0)
             .map((v, index) => ({
                 label: v.categoryName, // Now normalized to Title Case
-                value: Math.abs(v.variance), // Show overspending amount
+                value: v.actual,       // Show ACTUAL spent amount
                 color: unplannedColors[index % unplannedColors.length]
             }));
 

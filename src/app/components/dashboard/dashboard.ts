@@ -15,6 +15,7 @@ import { AnalyticsService } from '../../services/analytics.service';
 import { PlanningService, MonthlyPlan } from '../../services/planning.service'; // Added PlanningService and MonthlyPlan
 import { CarryForwardDialogComponent } from '../carry-forward-dialog/carry-forward-dialog.component'; // Added CarryForwardDialogComponent
 import { GamificationService } from '../../services/gamification.service'; // Added GamificationService
+import { GoalService } from '../../services/goal.service'; // Added GoalService
 
 // Define local interface for Chart.js data
 interface BarChartData {
@@ -106,6 +107,7 @@ export class DashboardComponent implements OnInit {
     private analyticsService: AnalyticsService,
     private planningService: PlanningService,
     private gamificationService: GamificationService, // Injected
+    private goalService: GoalService, // Injected
     private router: Router
   ) { }
 
@@ -129,6 +131,7 @@ export class DashboardComponent implements OnInit {
     const now = new Date();
     this.loadBudgetPlan(now.getMonth() + 1, now.getFullYear());
     this.loadGamificationStats();
+    this.loadGoals();
   }
 
   checkPlanningStatus() {
@@ -184,7 +187,7 @@ export class DashboardComponent implements OnInit {
   handleCarryForward() {
     if (this.previousPlan) {
       const now = new Date();
-      const newPlan: MonthlyPlan = {
+      const newPlan: any = {
         ...this.previousPlan,
         month: now.getMonth() + 1,
         year: now.getFullYear(),
@@ -287,17 +290,13 @@ export class DashboardComponent implements OnInit {
     ];
 
     // Calculate Savings Rate
-    if (this.totalIncome > 0) {
-      this.savingsRate = Math.round(((this.totalIncome - this.totalExpense) / this.totalIncome) * 100);
-    } else {
-      this.savingsRate = 0;
-    }
+    // Calculate Savings Rate - Delegated to calculateSavings()
+    this.calculateSavings();
 
-    // Calculate Trend (Simple logic for now: compare with previous plan if available)
     if (this.previousPlan && this.previousPlan.totalIncome > 0) {
       const prevExpense = this.previousPlan.items
         .filter(i => i.type === 'EXPENSE')
-        .reduce((sum, i) => sum + i.plannedAmount, 0); // Using planned as proxy for actual if actual not stored in plan
+        .reduce((sum, i) => sum + i.plannedAmount, 0);
 
       const prevSavingsRate = Math.round(((this.previousPlan.totalIncome - prevExpense) / this.previousPlan.totalIncome) * 100);
 
@@ -308,6 +307,49 @@ export class DashboardComponent implements OnInit {
 
     // Load 6-Month Trend Data
     this.loadSixMonthTrend();
+  }
+
+  // New Savings Calculation Logic
+  totalMonthlySavings: number = 0;
+  goals: any[] = [];
+
+  loadGoals() {
+    this.goalService.getGoals().subscribe({
+      next: (goals) => {
+        this.goals = goals;
+        this.calculateSavings();
+      },
+      error: (err) => console.error('Error loading goals:', err)
+    });
+  }
+
+  calculateSavings() {
+    // 1. Goal Contributions
+    const goalContributions = this.goals
+      .filter(g => g.status === 'ACTIVE')
+      .reduce((sum, g) => sum + (g.monthlyContribution || 0), 0);
+
+    // 2. Planned Savings from Budget (Categories like "Savings", "SIP", "Invest")
+    // We need to access the current plan items. 
+    // Since we don't store the full plan object in a property accessible here easily (only totals),
+    // we might need to rely on budgetVariances which has category names.
+    // However, budgetVariances are based on Budgets, which should match Plan Items.
+
+    const savingsKeywords = ['saving', 'sip', 'invest', 'mutual fund', 'ppf', 'fd', 'deposit'];
+
+    const plannedSavings = this.budgetVariances
+      .filter(v => {
+        const name = v.categoryName.toLowerCase();
+        return savingsKeywords.some(keyword => name.includes(keyword));
+      })
+      .reduce((sum, v) => sum + v.planned, 0);
+
+    this.totalMonthlySavings = goalContributions + plannedSavings;
+
+    // Recalculate Savings Rate based on this new Total Savings
+    if (this.totalIncome > 0) {
+      this.savingsRate = Math.round((this.totalMonthlySavings / this.totalIncome) * 100);
+    }
   }
 
   loadSixMonthTrend() {
@@ -381,6 +423,7 @@ export class DashboardComponent implements OnInit {
         this.loadBudgetPlan(month, year);
         // Recalculate totals now that budgetVariances is populated
         this.calculateTotals();
+        this.calculateSavings(); // Recalculate savings with new budget data
       },
       error: (err) => console.error('Error loading budget variance:', err)
     });
@@ -428,7 +471,7 @@ export class DashboardComponent implements OnInit {
       next: (plan) => {
         console.log('Plan received:', plan);
         this.totalPlannedIncome = plan.totalIncome || 0;
-        this.totalPlannedExpense = plan.totalPlannedExpense || 0;
+        this.totalPlannedExpense = plan.totalExpense || 0;
         this.calculateTotals(); // Recalculate totals with planned income
       },
       error: (err) => console.error('Error loading budget plan:', err)
@@ -440,7 +483,7 @@ export class DashboardComponent implements OnInit {
     this.editingTransaction = transaction;
     this.editForm = { ...transaction };
     // Pre-fill category name for the input field
-    this.editForm.categoryName = transaction.category?.name || '';
+    this.editForm.categoryName = transaction.categoryName || '';
     this.showEditModal = true;
   }
 
@@ -461,9 +504,11 @@ export class DashboardComponent implements OnInit {
       const existingCategory = this.categories.find(c => c.name.toLowerCase() === name.toLowerCase());
       if (existingCategory) {
         this.editForm.category = existingCategory;
+        this.editForm.categoryId = existingCategory.id;
       } else {
         // New Category - Backend should handle creation or mapping
         this.editForm.category = { name: name };
+        this.editForm.categoryId = undefined;
       }
     }
 
@@ -548,6 +593,35 @@ export class DashboardComponent implements OnInit {
           alert('Failed to unlink Telegram account');
         }
       });
+    }
+  }
+  // Helper methods for Transaction List Display
+  getDisplayType(transaction: Transaction): string {
+    if (transaction.type === 'INCOME') return 'INCOME';
+
+    const name = (transaction.categoryName || '').toLowerCase();
+
+    // Check for Debt (EMI, Loan)
+    if (name.includes('emi') || name.includes('loan')) {
+      return 'DEBT';
+    }
+
+    // Check for Savings (SIP, Invest, etc.)
+    const savingsKeywords = ['saving', 'sip', 'invest', 'mutual fund', 'ppf', 'fd', 'deposit', 'goal'];
+    if (savingsKeywords.some(k => name.includes(k))) {
+      return 'SAVINGS';
+    }
+
+    return 'EXPENSE';
+  }
+
+  getTypeClass(transaction: Transaction): string {
+    const type = this.getDisplayType(transaction);
+    switch (type) {
+      case 'INCOME': return 'bg-emerald-100 text-emerald-700';
+      case 'DEBT': return 'bg-orange-100 text-orange-700';
+      case 'SAVINGS': return 'bg-blue-100 text-blue-700';
+      default: return 'bg-rose-100 text-rose-700'; // EXPENSE
     }
   }
 }

@@ -39,6 +39,10 @@
             class="block px-4 py-3 rounded-lg hover:bg-neutral-bg text-neutral-text-primary hover:text-brand-accent font-medium transition flex items-center gap-3">
             <span>📱</span> Active Sessions
         </a>
+        <a routerLink="/leaderboard" (click)="toggleSidebar()"
+            class="block px-4 py-3 rounded-lg hover:bg-neutral-bg text-neutral-text-primary hover:text-brand-accent font-medium transition flex items-center gap-3">
+            <span>🏆</span> Leaderboard
+        </a>
         <a routerLink="/mfa-setup" (click)="toggleSidebar()"
             class="block px-4 py-3 rounded-lg hover:bg-neutral-bg text-neutral-text-primary hover:text-brand-accent font-medium transition flex items-center gap-3">
             <span>🔐</span> MFA Setup
@@ -95,6 +99,10 @@
                 <a routerLink="/transactions" routerLinkActive="bg-white bg-opacity-10"
                     class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 font-medium flex items-center gap-2 transition">
                     <span>💳</span> <span class="hidden md:inline">Transactions</span>
+                </a>
+                <a routerLink="/leaderboard" routerLinkActive="bg-white bg-opacity-10"
+                    class="px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 font-medium flex items-center gap-2 transition">
+                    <span>🏆</span> <span class="hidden md:inline">Leaderboard</span>
                 </a>
                 <button (click)="logout()"
                     class="ml-2 px-4 py-2 rounded-lg border border-white border-opacity-30 text-white hover:bg-white hover:bg-opacity-10 font-medium transition flex items-center gap-2">

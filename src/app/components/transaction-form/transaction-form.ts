@@ -16,7 +16,8 @@ export class TransactionFormComponent implements OnInit {
   transaction: Transaction = {
     amount: 0,
     type: 'EXPENSE',
-    category: { name: '' },
+    categoryName: '',
+    categoryId: undefined,
     date: new Date().toISOString().split('T')[0],
     description: ''
   };
@@ -40,24 +41,8 @@ export class TransactionFormComponent implements OnInit {
   }
 
   loadCategories() {
-    // Get predefined categories from PlanningService
-    const predefined = this.planningService.getPredefinedCategories();
-    const allPredefined = [
-      ...predefined.DEBT,
-      ...predefined.ESSENTIAL,
-      ...predefined.DISCRETIONARY
-    ].map(c => ({ name: c.name }));
-
     this.financeService.getCategories().subscribe(data => {
-      // Create a Set of existing names for easy lookup (case-insensitive)
-      const existingNames = new Set(data.map(c => c.name.toLowerCase()));
-
-      // Filter out predefined categories that already exist in the DB response
-      const uniquePredefined = allPredefined.filter(c => !existingNames.has(c.name.toLowerCase()));
-
-      // Combine existing DB categories with unique predefined ones
-      this.categories = [...data, ...uniquePredefined];
-
+      this.categories = data;
       // Sort alphabetically
       this.categories.sort((a, b) => a.name.localeCompare(b.name));
     });
@@ -67,7 +52,14 @@ export class TransactionFormComponent implements OnInit {
     // If creating a new category, just set the name. 
     // The backend's saveTransaction logic handles "find or create" safely.
     if (this.isNewCategory && this.newCategoryName) {
-      this.transaction.category = { name: this.newCategoryName };
+      this.transaction.categoryName = this.newCategoryName;
+      this.transaction.categoryId = undefined;
+    } else if (this.transaction.categoryName) {
+      // Find ID if existing category selected
+      const selected = this.categories.find(c => c.name === this.transaction.categoryName);
+      if (selected && selected.id) {
+        this.transaction.categoryId = selected.id;
+      }
     }
 
     this.saveTransaction();

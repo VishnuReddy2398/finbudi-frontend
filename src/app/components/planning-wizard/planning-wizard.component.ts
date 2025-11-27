@@ -38,10 +38,10 @@ export class PlanningWizardComponent implements OnInit {
     ) { }
 
     ngOnInit() {
-        this.predefinedCategories = this.planningService.getPredefinedCategories();
-
-        // Initialize with predefined categories (amount 0)
-        this.initializeCategories();
+        this.planningService.getPredefinedCategories().subscribe(categories => {
+            this.predefinedCategories = categories;
+            this.initializeCategories();
+        });
     }
 
     initializeCategories() {

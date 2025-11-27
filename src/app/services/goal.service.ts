@@ -10,6 +10,17 @@ const httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
 };
 
+export interface Goal {
+    id: number;
+    name: string;
+    targetAmount: number;
+    currentAmount: number;
+    targetDate: string;
+    priority: string;
+    monthlyContribution: number;
+    status: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
