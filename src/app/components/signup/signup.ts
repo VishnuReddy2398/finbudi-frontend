@@ -15,7 +15,8 @@ export class SignupComponent implements OnInit {
   form: any = {
     username: '',
     email: '',
-    password: ''
+    password: '',
+    termsAccepted: false
   };
   isSuccessful = false;
   isSignUpFailed = false;
@@ -27,9 +28,15 @@ export class SignupComponent implements OnInit {
   }
 
   onSubmit(): void {
-    const { username, email, password } = this.form;
+    const { username, email, password, termsAccepted } = this.form;
 
-    this.authService.register(username, email, password).subscribe({
+    if (!termsAccepted) {
+      this.errorMessage = "You must accept the Terms and Conditions";
+      this.isSignUpFailed = true;
+      return;
+    }
+
+    this.authService.register(username, email, password, termsAccepted).subscribe({
       next: data => {
         console.log(data);
         this.isSuccessful = true;
