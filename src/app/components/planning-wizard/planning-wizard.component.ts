@@ -46,26 +46,30 @@ export class PlanningWizardComponent implements OnInit {
 
     initializeCategories() {
         // Debt
-        this.predefinedCategories.DEBT.forEach((cat: any) => {
-            this.debtItems.push({
-                categoryName: cat.name,
-                plannedAmount: 0,
-                type: 'EXPENSE',
-                fixed: true,
-                categoryGroup: 'DEBT'
+        if (this.predefinedCategories.DEBTS) {
+            this.predefinedCategories.DEBTS.forEach((cat: any) => {
+                this.debtItems.push({
+                    categoryName: cat.name,
+                    plannedAmount: 0,
+                    type: 'EXPENSE',
+                    fixed: true,
+                    categoryGroup: 'DEBTS'
+                });
             });
-        });
+        }
 
         // Essential
-        this.predefinedCategories.ESSENTIAL.forEach((cat: any) => {
-            this.essentialItems.push({
-                categoryName: cat.name,
-                plannedAmount: 0,
-                type: 'EXPENSE',
-                fixed: true,
-                categoryGroup: 'ESSENTIAL'
+        if (this.predefinedCategories.ESSENTIALS) {
+            this.predefinedCategories.ESSENTIALS.forEach((cat: any) => {
+                this.essentialItems.push({
+                    categoryName: cat.name,
+                    plannedAmount: 0,
+                    type: 'EXPENSE',
+                    fixed: true,
+                    categoryGroup: 'ESSENTIALS'
+                });
             });
-        });
+        }
 
         // Discretionary
         this.predefinedCategories.DISCRETIONARY.forEach((cat: any) => {
@@ -100,7 +104,7 @@ export class PlanningWizardComponent implements OnInit {
                 plannedAmount: this.customDebtAmount,
                 type: 'EXPENSE',
                 fixed: true,
-                categoryGroup: 'DEBT'
+                categoryGroup: 'DEBTS'
             });
             this.customDebtName = '';
             this.customDebtAmount = null;
@@ -114,7 +118,7 @@ export class PlanningWizardComponent implements OnInit {
                 plannedAmount: this.customEssentialAmount,
                 type: 'EXPENSE',
                 fixed: true,
-                categoryGroup: 'ESSENTIAL'
+                categoryGroup: 'ESSENTIALS'
             });
             this.customEssentialName = '';
             this.customEssentialAmount = null;

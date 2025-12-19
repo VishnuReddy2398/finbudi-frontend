@@ -56,8 +56,8 @@ export class PlanningService {
         return this.financeService.getCategories().pipe(
             map(categories => {
                 const grouped: any = {
-                    DEBT: [],
-                    ESSENTIAL: [],
+                    DEBTS: [],
+                    ESSENTIALS: [],
                     DISCRETIONARY: []
                 };
 
